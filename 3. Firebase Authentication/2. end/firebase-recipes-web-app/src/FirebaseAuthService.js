@@ -17,12 +17,20 @@ if (!firebase.apps.length) {
 
 const auth = firebase.auth();
 
+const registerUser = (email, password) => {
+    return auth.createUserWithEmailAndPassword(email, password);
+};
+
 const loginUser = (email, password) => {
     return auth.signInWithEmailAndPassword(email, password);
 };
 
 const logoutUser = () => {
     return auth.signOut();
+};
+
+const sendResetPassword = (email) => {
+    return auth.sendPasswordResetEmail(email);
 };
 
 const subscribeToAuthChanges = (handleAuthChange) => {
@@ -32,8 +40,10 @@ const subscribeToAuthChanges = (handleAuthChange) => {
 };
 
 const FirebaseAuthService = {
+    registerUser,
     loginUser,
     logoutUser,
+    sendResetPassword,
     subscribeToAuthChanges,
 };
 
