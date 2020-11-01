@@ -3,7 +3,7 @@ import './App.css';
 function App() {
     return (
         <div className="App">
-            <h1>My first firebase app!</h1>
+            <h1>Firebase Recipes</h1>
         </div>
     );
 }
