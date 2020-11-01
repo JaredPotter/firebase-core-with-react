@@ -35,6 +35,19 @@ function App() {
         alert('Reset Email Sent');
     }
 
+    async function handleLoginWithGoogle() {
+        try {
+            const loginResult = await FirebaseAuthService.loginWithGoogle();
+
+            const user = loginResult.user;
+
+            setUser(user);
+        } catch (error) {
+            alert(error.message);
+            throw error;
+        }
+    }
+
     return (
         <div className="App">
             {user ? (
@@ -67,6 +80,9 @@ function App() {
                     </form>
                     <button onClick={handleSendPasswordResetEmail}>
                         Send Password Reset Email
+                    </button>
+                    <button onClick={handleLoginWithGoogle}>
+                        Login with Google
                     </button>
                 </>
             )}
