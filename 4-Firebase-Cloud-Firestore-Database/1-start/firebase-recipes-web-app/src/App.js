@@ -6,6 +6,8 @@ function App() {
     const [password, setPassword] = React.useState('');
     const [user, setUser] = React.useState(null);
 
+    FirebaseAuthService.subscribeToAuthChanges(setUser);
+
     async function handleSubmit(event) {
         event.preventDefault();
 
