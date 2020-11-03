@@ -21,8 +21,13 @@ const create = (collection, document) => {
     return firestore.collection(collection).add(document);
 };
 
+const read = (collection) => {
+    return firestore.collection(collection).get();
+};
+
 const FirebaseFirestoreService = {
     create,
+    read,
 };
 
 export default FirebaseFirestoreService;

@@ -1,3 +1,4 @@
+import './App.css';
 import React from 'react';
 import FirebaseAuthService from './FirebaseAuthService';
 import FirebaseFirestoreService from './FirebaseFirestoreService';
@@ -7,8 +8,27 @@ function App() {
     const [username, setUsername] = React.useState('');
     const [password, setPassword] = React.useState('');
     const [user, setUser] = React.useState(null);
+    const [recipes, setRecipes] = React.useState(() => {
+        fetchRecipes();
+
+        return [];
+    });
 
     FirebaseAuthService.subscribeToAuthChanges(setUser);
+
+    async function fetchRecipes() {
+        try {
+            const response = await FirebaseFirestoreService.read('recipes');
+            const recipes = response.docs.map((recipe) => {
+                return recipe.data();
+            });
+
+            setRecipes(recipes);
+        } catch (error) {
+            alert(error.message);
+            throw error;
+        }
+    }
 
     async function handleSubmit(event) {
         event.preventDefault();
@@ -59,6 +79,8 @@ function App() {
                 newRecipe
             );
 
+            fetchRecipes();
+
             alert(`successfully create a recipe with an ID = ${response.id}`);
         } catch (error) {
             alert(error.message);
@@ -107,6 +129,21 @@ function App() {
             )}
 
             <h1>Firebase Recipes</h1>
+            {recipes && recipes.length > 0 ? (
+                <div class="recipe-list">
+                    {recipes.map((recipe) => {
+                        return (
+                            <div className="recipe-card">
+                                <div>Name: {recipe.name}</div>
+                                <div>Description: {recipe.description}</div>
+                                <div>Serves: {recipe.serves}</div>
+                            </div>
+                        );
+                    })}
+                </div>
+            ) : (
+                <h5>No Recipes Found!</h5>
+            )}
             {user ? (
                 <AddEditRecipeForm handleAddRecipe={handleAddRecipe} />
             ) : null}
