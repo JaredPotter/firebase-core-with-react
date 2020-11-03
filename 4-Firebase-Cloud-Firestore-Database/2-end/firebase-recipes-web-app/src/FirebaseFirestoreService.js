@@ -29,10 +29,15 @@ const updateDocument = (collection, id, document) => {
     return firestore.collection(collection).doc(id).update(document);
 };
 
+const deleteDocument = (collection, id) => {
+    return firestore.collection(collection).doc(id).delete();
+};
+
 const FirebaseFirestoreService = {
     createDocument,
     readDocuments,
     updateDocument,
+    deleteDocument,
 };
 
 export default FirebaseFirestoreService;

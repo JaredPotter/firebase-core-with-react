@@ -116,6 +116,31 @@ function App() {
         }
     }
 
+    async function handleDeleteRecipe(recipeId) {
+        const deleteConfirmation = window.confirm(
+            'Are you sure you want to delete this recipe?'
+        );
+
+        if (deleteConfirmation) {
+            try {
+                await FirebaseFirestoreService.deleteDocument(
+                    'recipes',
+                    recipeId
+                );
+
+                fetchRecipes();
+
+                setCurrentRecipe(null);
+
+                alert(`successfully deleted recipe with an ID = ${recipeId}`);
+            } catch (error) {
+                alert(error.message);
+
+                throw error;
+            }
+        }
+    }
+
     function handleCancelClick() {
         setCurrentRecipe(null);
     }
@@ -200,6 +225,7 @@ function App() {
                 <AddEditRecipeForm
                     handleAddRecipe={handleAddRecipe}
                     handleUpdateRecipe={handleUpdateRecipe}
+                    handleDeleteRecipe={handleDeleteRecipe}
                     currentRecipe={currentRecipe}
                     handleCancelClick={handleCancelClick}
                 />

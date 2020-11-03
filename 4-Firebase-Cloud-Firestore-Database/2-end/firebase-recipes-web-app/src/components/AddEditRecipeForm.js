@@ -4,6 +4,7 @@ import React from 'react';
 function AddEditRecipeForm({
     handleAddRecipe,
     handleUpdateRecipe,
+    handleDeleteRecipe,
     currentRecipe,
     handleCancelClick,
 }) {
@@ -264,7 +265,17 @@ function AddEditRecipeForm({
                 {currentRecipe ? 'Update Recipe' : 'Create Recipe'}
             </button>
             {currentRecipe ? (
-                <button onClick={handleCancelClick}>Cancel</button>
+                <>
+                    <button type="button" onClick={handleCancelClick}>
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => handleDeleteRecipe(currentRecipe.id)}
+                    >
+                        Delete
+                    </button>
+                </>
             ) : null}
         </form>
     );
