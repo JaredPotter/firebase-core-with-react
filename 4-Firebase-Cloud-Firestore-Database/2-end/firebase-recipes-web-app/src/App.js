@@ -20,7 +20,9 @@ function App() {
         try {
             const response = await FirebaseFirestoreService.read('recipes');
             const recipes = response.docs.map((recipe) => {
-                return recipe.data();
+                const id = recipe.id;
+
+                return { ...recipe.data(), id };
             });
 
             setRecipes(recipes);
@@ -134,6 +136,7 @@ function App() {
                     {recipes.map((recipe) => {
                         return (
                             <div className="recipe-card">
+                                <div>ID: {recipe.id}</div>
                                 <div>Name: {recipe.name}</div>
                                 <div>Description: {recipe.description}</div>
                                 <div>Serves: {recipe.serves}</div>
