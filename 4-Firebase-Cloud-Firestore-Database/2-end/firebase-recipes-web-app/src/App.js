@@ -19,7 +19,9 @@ function App() {
 
     async function fetchRecipes() {
         try {
-            const response = await FirebaseFirestoreService.read('recipes');
+            const response = await FirebaseFirestoreService.readDocuments(
+                'recipes'
+            );
             const recipes = response.docs.map((recipe) => {
                 const id = recipe.id;
 
@@ -77,7 +79,7 @@ function App() {
 
     async function handleAddRecipe(newRecipe) {
         try {
-            const response = await FirebaseFirestoreService.create(
+            const response = await FirebaseFirestoreService.createDocument(
                 'recipes',
                 newRecipe
             );
@@ -94,7 +96,7 @@ function App() {
 
     async function handleUpdateRecipe(updatedRecipe) {
         try {
-            await FirebaseFirestoreService.update(
+            await FirebaseFirestoreService.updateDocument(
                 'recipes',
                 updatedRecipe.id,
                 updatedRecipe

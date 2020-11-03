@@ -17,22 +17,22 @@ if (!firebase.apps.length) {
 
 const firestore = firebase.firestore();
 
-const create = (collection, document) => {
+const createDocument = (collection, document) => {
     return firestore.collection(collection).add(document);
 };
 
-const read = (collection) => {
+const readDocuments = (collection) => {
     return firestore.collection(collection).get();
 };
 
-const update = (collection, id, document) => {
+const updateDocument = (collection, id, document) => {
     return firestore.collection(collection).doc(id).update(document);
 };
 
 const FirebaseFirestoreService = {
-    create,
-    read,
-    update,
+    createDocument,
+    readDocuments,
+    updateDocument,
 };
 
 export default FirebaseFirestoreService;
