@@ -127,6 +127,7 @@ function App() {
 
         if (selectedRecipe) {
             setCurrentRecipe(selectedRecipe);
+            window.scrollTo(0, document.body.scrollHeight);
         }
     }
 
