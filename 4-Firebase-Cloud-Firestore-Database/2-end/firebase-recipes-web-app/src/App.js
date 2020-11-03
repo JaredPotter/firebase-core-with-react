@@ -132,10 +132,10 @@ function App() {
 
             <h1>Firebase Recipes</h1>
             {recipes && recipes.length > 0 ? (
-                <div class="recipe-list">
+                <div className="recipe-list">
                     {recipes.map((recipe) => {
                         return (
-                            <div className="recipe-card">
+                            <div className="recipe-card" key={recipe.id}>
                                 <div>ID: {recipe.id}</div>
                                 <div>Name: {recipe.name}</div>
                                 <div>Description: {recipe.description}</div>
