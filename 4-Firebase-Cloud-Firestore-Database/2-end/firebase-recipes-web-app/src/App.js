@@ -13,6 +13,7 @@ function App() {
 
         return [];
     });
+    const [currentRecipe, setCurrentRecipe] = React.useState(null);
 
     FirebaseAuthService.subscribeToAuthChanges(setUser);
 
@@ -91,6 +92,42 @@ function App() {
         }
     }
 
+    async function handleUpdateRecipe(updatedRecipe) {
+        try {
+            await FirebaseFirestoreService.update(
+                'recipes',
+                updatedRecipe.id,
+                updatedRecipe
+            );
+
+            fetchRecipes();
+
+            alert(
+                `successfully updated recipe with an ID = ${updatedRecipe.id}`
+            );
+
+            setCurrentRecipe(null);
+        } catch (error) {
+            alert(error.message);
+
+            throw error;
+        }
+    }
+
+    function handleCancelClick() {
+        setCurrentRecipe(null);
+    }
+
+    function handleRecipeEditClick(recipeId) {
+        const selectedRecipe = recipes.find((recipe) => {
+            return recipe.id === recipeId;
+        });
+
+        if (selectedRecipe) {
+            setCurrentRecipe(selectedRecipe);
+        }
+    }
+
     return (
         <div className="App">
             {user ? (
@@ -140,6 +177,15 @@ function App() {
                                 <div>Name: {recipe.name}</div>
                                 <div>Description: {recipe.description}</div>
                                 <div>Serves: {recipe.serves}</div>
+                                {user ? (
+                                    <button
+                                        onClick={() =>
+                                            handleRecipeEditClick(recipe.id)
+                                        }
+                                    >
+                                        EDIT
+                                    </button>
+                                ) : null}
                             </div>
                         );
                     })}
@@ -148,7 +194,12 @@ function App() {
                 <h5>No Recipes Found!</h5>
             )}
             {user ? (
-                <AddEditRecipeForm handleAddRecipe={handleAddRecipe} />
+                <AddEditRecipeForm
+                    handleAddRecipe={handleAddRecipe}
+                    handleUpdateRecipe={handleUpdateRecipe}
+                    currentRecipe={currentRecipe}
+                    handleCancelClick={handleCancelClick}
+                />
             ) : null}
         </div>
     );

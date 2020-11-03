@@ -25,9 +25,14 @@ const read = (collection) => {
     return firestore.collection(collection).get();
 };
 
+const update = (collection, id, document) => {
+    return firestore.collection(collection).doc(id).update(document);
+};
+
 const FirebaseFirestoreService = {
     create,
     read,
+    update,
 };
 
 export default FirebaseFirestoreService;

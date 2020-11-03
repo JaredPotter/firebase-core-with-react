@@ -1,7 +1,36 @@
 import './AddEditRecipeForm.css';
 import React from 'react';
 
-function AddEditRecipeForm({ handleAddRecipe }) {
+function AddEditRecipeForm({
+    handleAddRecipe,
+    handleUpdateRecipe,
+    currentRecipe,
+    handleCancelClick,
+}) {
+    React.useEffect(() => {
+        if (currentRecipe) {
+            setName(currentRecipe.name);
+            setCategory(currentRecipe.category);
+            setDescription(currentRecipe.description);
+            setServes(currentRecipe.serves);
+            setPrepTime(currentRecipe.prepTime);
+            setCookTime(currentRecipe.cookTime);
+            setPublishDate(currentRecipe.publishDate);
+            setDirections(currentRecipe.directions);
+            setIngredients(currentRecipe.ingredients);
+        } else {
+            setName('');
+            setCategory('');
+            setDescription('');
+            setServes(4);
+            setPrepTime('');
+            setCookTime('');
+            setPublishDate(new Date().toISOString().split('T')[0]);
+            setDirections('');
+            setIngredients([]);
+        }
+    }, [currentRecipe]);
+
     const [name, setName] = React.useState('');
     const [category, setCategory] = React.useState('');
     const [description, setDescription] = React.useState('');
@@ -41,7 +70,12 @@ function AddEditRecipeForm({ handleAddRecipe }) {
             ingredients,
         };
 
-        handleAddRecipe(newRecipe);
+        if (currentRecipe) {
+            newRecipe.id = currentRecipe.id;
+            handleUpdateRecipe(newRecipe);
+        } else {
+            handleAddRecipe(newRecipe);
+        }
     }
 
     function handleAddIngredientClick() {
@@ -75,7 +109,7 @@ function AddEditRecipeForm({ handleAddRecipe }) {
             onSubmit={handleRecipeFormSubmit}
             className="add-edit-recipe-form-container"
         >
-            <h3>Add a new Recipe</h3>
+            <h3>{currentRecipe ? 'Update The Recipe' : 'Add a New Recipe'}</h3>
             <label>
                 Recipe Name:
                 <input
@@ -226,7 +260,12 @@ function AddEditRecipeForm({ handleAddRecipe }) {
                 </div>
             </div>
 
-            <button type="submit">Create Recipe</button>
+            <button type="submit">
+                {currentRecipe ? 'Update Recipe' : 'Create Recipe'}
+            </button>
+            {currentRecipe ? (
+                <button onClick={handleCancelClick}>Cancel</button>
+            ) : null}
         </form>
     );
 }
