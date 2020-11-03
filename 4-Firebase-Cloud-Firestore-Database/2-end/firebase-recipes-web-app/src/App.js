@@ -1,5 +1,7 @@
 import React from 'react';
 import FirebaseAuthService from './FirebaseAuthService';
+import FirebaseFirestoreService from './FirebaseFirestoreService';
+import AddEditRecipeForm from './components/AddEditRecipeForm';
 
 function App() {
     const [username, setUsername] = React.useState('');
@@ -50,6 +52,21 @@ function App() {
         }
     }
 
+    async function handleAddRecipe(newRecipe) {
+        try {
+            const response = await FirebaseFirestoreService.create(
+                'recipes',
+                newRecipe
+            );
+
+            alert(`successfully create a recipe with an ID = ${response.id}`);
+        } catch (error) {
+            alert(error.message);
+
+            throw error;
+        }
+    }
+
     return (
         <div className="App">
             {user ? (
@@ -90,6 +107,9 @@ function App() {
             )}
 
             <h1>Firebase Recipes</h1>
+            {user ? (
+                <AddEditRecipeForm handleAddRecipe={handleAddRecipe} />
+            ) : null}
         </div>
     );
 }
