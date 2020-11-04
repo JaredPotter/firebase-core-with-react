@@ -14,13 +14,28 @@ function App() {
         return [];
     });
     const [currentRecipe, setCurrentRecipe] = React.useState(null);
+    const [categoryFilter, setCategoryFilter] = React.useState('');
+    React.useEffect(() => {
+        const queries = [];
+
+        if (categoryFilter) {
+            queries.push({
+                field: 'category',
+                condition: '==',
+                value: categoryFilter,
+            });
+        }
+
+        fetchRecipes(queries);
+    }, [categoryFilter]);
 
     FirebaseAuthService.subscribeToAuthChanges(setUser);
 
-    async function fetchRecipes() {
+    async function fetchRecipes(queries = []) {
         try {
             const response = await FirebaseFirestoreService.readDocuments(
-                'recipes'
+                'recipes',
+                queries
             );
             const recipes = response.docs.map((recipe) => {
                 const id = recipe.id;
@@ -196,6 +211,24 @@ function App() {
             )}
 
             <h1>Firebase Recipes</h1>
+            <label>
+                Category:
+                <select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                >
+                    <option value=""></option>
+                    <option value="breadsSandwichesPizza">
+                        Breads, Sandwiches, and Pizza
+                    </option>
+                    <option value="eggsBreakfast">Eggs & Breakfast</option>
+                    <option value="dessertsBakedGoods">
+                        Desserts & Baked Goods
+                    </option>
+                    <option value="fishSeafood">Fish & Seafood</option>
+                    <option value="vegetables">Vegetables</option>
+                </select>
+            </label>
             {recipes && recipes.length > 0 ? (
                 <div className="recipe-list">
                     {recipes.map((recipe) => {

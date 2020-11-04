@@ -21,8 +21,23 @@ const createDocument = (collection, document) => {
     return firestore.collection(collection).add(document);
 };
 
-const readDocuments = (collection) => {
-    return firestore.collection(collection).get();
+const readDocuments = (collection, queries) => {
+    let collectionRef = firestore.collection(collection);
+
+    if (queries && queries.length > 0) {
+        for (const query of queries) {
+            const queryField = query.field;
+            const queryCondition = query.condition;
+            const queryValue = query.value;
+            collectionRef = collectionRef.where(
+                queryField,
+                queryCondition,
+                queryValue
+            );
+        }
+    }
+
+    return collectionRef.get();
 };
 
 const updateDocument = (collection, id, document) => {
