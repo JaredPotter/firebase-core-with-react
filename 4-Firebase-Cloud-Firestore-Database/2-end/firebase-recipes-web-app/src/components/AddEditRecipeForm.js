@@ -66,7 +66,7 @@ function AddEditRecipeForm({
             name,
             category,
             description,
-            serves,
+            serves: Number(serves),
             prepTime: prepTimeNumber,
             cookTime: cookTimeNumber,
             totalTime: prepTimeNumber + cookTimeNumber,

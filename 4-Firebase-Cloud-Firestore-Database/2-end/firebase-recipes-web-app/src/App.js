@@ -15,6 +15,8 @@ function App() {
     });
     const [currentRecipe, setCurrentRecipe] = React.useState(null);
     const [categoryFilter, setCategoryFilter] = React.useState('');
+    const [servesFilter, setServesFilter] = React.useState('');
+    const [totalTimeFilter, setTotalTimeFilter] = React.useState('');
     React.useEffect(() => {
         const queries = [];
 
@@ -26,8 +28,40 @@ function App() {
             });
         }
 
+        if (servesFilter) {
+            if (servesFilter === '7+') {
+                queries.push({
+                    field: 'serves',
+                    condition: '>=',
+                    value: 7,
+                });
+            } else {
+                queries.push({
+                    field: 'serves',
+                    condition: '==',
+                    value: Number(servesFilter),
+                });
+            }
+        }
+
+        if (totalTimeFilter) {
+            if (totalTimeFilter === '60+') {
+                queries.push({
+                    field: 'totalTime',
+                    condition: '>=',
+                    value: 60,
+                });
+            } else {
+                queries.push({
+                    field: 'totalTime',
+                    condition: '==',
+                    value: Number(totalTimeFilter),
+                });
+            }
+        }
+
         fetchRecipes(queries);
-    }, [categoryFilter]);
+    }, [categoryFilter, servesFilter, totalTimeFilter]);
 
     FirebaseAuthService.subscribeToAuthChanges(setUser);
 
@@ -227,6 +261,42 @@ function App() {
                     </option>
                     <option value="fishSeafood">Fish & Seafood</option>
                     <option value="vegetables">Vegetables</option>
+                </select>
+            </label>
+            <label>
+                Serves:
+                <select
+                    value={servesFilter}
+                    onChange={(e) => setServesFilter(e.target.value)}
+                >
+                    <option value=""></option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7+">7+</option>
+                </select>
+            </label>
+            <label>
+                Total Time:
+                <select
+                    value={totalTimeFilter}
+                    onChange={(e) => setTotalTimeFilter(e.target.value)}
+                >
+                    <option value=""></option>
+                    <option value="10">10 Minutes</option>
+                    <option value="15">15 Minutes</option>
+                    <option value="20">20 Minutes</option>
+                    <option value="25">25 Minutes</option>
+                    <option value="30">30 Minutes</option>
+                    <option value="35">35 Minutes</option>
+                    <option value="40">40 Minutes</option>
+                    <option value="45">45 Minutes</option>
+                    <option value="50">50 Minutes</option>
+                    <option value="55">55 Minutes</option>
+                    <option value="60+">60+ Minutes</option>
                 </select>
             </label>
             {recipes && recipes.length > 0 ? (
