@@ -71,7 +71,7 @@ function AddEditRecipeForm({
             cookTime: cookTimeNumber,
             totalTime: prepTimeNumber + cookTimeNumber,
             directions,
-            publishDate,
+            publishDate: new Date(publishDate),
             ingredients,
         };
 

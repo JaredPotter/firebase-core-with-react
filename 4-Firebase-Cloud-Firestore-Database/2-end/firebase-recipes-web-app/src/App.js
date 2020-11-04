@@ -16,6 +16,7 @@ function App() {
     const [currentRecipe, setCurrentRecipe] = React.useState(null);
     const [categoryFilter, setCategoryFilter] = React.useState('');
     const [servesFilter, setServesFilter] = React.useState('');
+    const [orderBy, setOrderBy] = React.useState('');
     React.useEffect(() => {
         const queries = [];
 
@@ -43,21 +44,51 @@ function App() {
             }
         }
 
-        fetchRecipes(queries);
-    }, [categoryFilter, servesFilter]);
+        fetchRecipes(queries, orderBy);
+    }, [categoryFilter, servesFilter, orderBy]);
 
     FirebaseAuthService.subscribeToAuthChanges(setUser);
 
-    async function fetchRecipes(queries = []) {
+    async function fetchRecipes(queries = [], orderBy) {
+        let orderByField;
+        let orderByDirection;
+
+        switch (orderBy) {
+            case 'publishDateAsc':
+                orderByField = 'publishDate';
+                orderByDirection = 'asc';
+                break;
+            case 'publishDateDesc':
+                orderByField = 'publishDate';
+                orderByDirection = 'desc';
+                break;
+            case 'totalTimeDesc':
+                orderByField = 'totalTime';
+                orderByDirection = 'desc';
+                break;
+            case 'totalTimeAsc':
+                orderByField = 'totalTime';
+                orderByDirection = 'asc';
+                break;
+            default:
+                break;
+        }
+
         try {
             const response = await FirebaseFirestoreService.readDocuments(
                 'recipes',
-                queries
+                queries,
+                orderByField,
+                orderByDirection
             );
             const recipes = response.docs.map((recipe) => {
                 const id = recipe.id;
 
-                return { ...recipe.data(), id };
+                const data = recipe.data();
+                const unixPublishDate = data.publishDate.seconds;
+                data.publishDate = new Date(unixPublishDate * 1000);
+
+                return { ...data, id };
             });
 
             setRecipes(recipes);
@@ -190,6 +221,34 @@ function App() {
         }
     }
 
+    function lookupCategoryLabel(categoryKey) {
+        const categories = {
+            breadsSandwichesPizza: 'Breads, Sandwiches, and Pizza',
+            eggsBreakfast: 'Eggs & Breakfast',
+            dessertsBakedGoods: 'Desserts & Baked Goods',
+            fishSeafood: 'Fish & Seafood',
+            vegetables: 'Vegetables',
+        };
+
+        return categories[categoryKey];
+    }
+
+    function formatDate(date) {
+        let dd = date.getDate();
+        let mm = date.getMonth() + 1;
+        let yyyy = date.getFullYear();
+
+        if (dd < 10) {
+            dd = '0' + dd;
+        }
+
+        if (mm < 10) {
+            mm = '0' + mm;
+        }
+
+        return `${mm}-${dd}-${yyyy}`;
+    }
+
     return (
         <div className="App">
             {user ? (
@@ -264,6 +323,27 @@ function App() {
                     <option value="7+">7+</option>
                 </select>
             </label>
+            <label>
+                Order By:
+                <select
+                    value={orderBy}
+                    onChange={(e) => setOrderBy(e.target.value)}
+                >
+                    <option value=""></option>
+                    <option value="publishDateDesc">
+                        Publish Date (newest - oldest)
+                    </option>
+                    <option value="publishDateAsc">
+                        Publish Date (oldest - newest)
+                    </option>
+                    <option value="totalTimeDesc">
+                        Total Time Minutes (most - least)
+                    </option>
+                    <option value="totalTimeAsc">
+                        Total Time Minutes (least - most)
+                    </option>
+                </select>
+            </label>
             {recipes && recipes.length > 0 ? (
                 <div className="recipe-list">
                     {recipes.map((recipe) => {
@@ -271,6 +351,14 @@ function App() {
                             <div className="recipe-card" key={recipe.id}>
                                 <div>ID: {recipe.id}</div>
                                 <div>Name: {recipe.name}</div>
+                                <div>
+                                    Category:{' '}
+                                    {lookupCategoryLabel(recipe.category)}
+                                </div>
+                                <div>
+                                    Publish Date:{' '}
+                                    {formatDate(recipe.publishDate)}
+                                </div>
                                 <div>Description: {recipe.description}</div>
                                 <div>Serves: {recipe.serves}</div>
                                 <div>
