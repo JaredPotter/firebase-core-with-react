@@ -164,12 +164,12 @@ function AddEditRecipeForm({
                     onChange={(e) => setPrepTime(e.target.value)}
                 >
                     <option value="" disabled></option>
-                    <option value="5min">5 Minutes</option>
-                    <option value="10min">10 Minutes</option>
-                    <option value="15min">15 Minutes</option>
-                    <option value="30min">30 Minutes</option>
-                    <option value="45min">45 Minutes</option>
-                    <option value="60min">60 Minutes</option>
+                    <option value="5">5 Minutes</option>
+                    <option value="10">10 Minutes</option>
+                    <option value="15">15 Minutes</option>
+                    <option value="30">30 Minutes</option>
+                    <option value="45">45 Minutes</option>
+                    <option value="60">60 Minutes</option>
                 </select>
             </label>
             <label>
@@ -180,12 +180,12 @@ function AddEditRecipeForm({
                     onChange={(e) => setCookTime(e.target.value)}
                 >
                     <option value="" disabled></option>
-                    <option value="5min">5 Minutes</option>
-                    <option value="10min">10 Minutes</option>
-                    <option value="15min">15 Minutes</option>
-                    <option value="30min">30 Minutes</option>
-                    <option value="45min">45 Minutes</option>
-                    <option value="60min">60 Minutes</option>
+                    <option value="5">5 Minutes</option>
+                    <option value="10">10 Minutes</option>
+                    <option value="15">15 Minutes</option>
+                    <option value="30">30 Minutes</option>
+                    <option value="45">45 Minutes</option>
+                    <option value="60">60 Minutes</option>
                 </select>
             </label>
             <label>
