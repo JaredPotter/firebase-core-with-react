@@ -205,6 +205,9 @@ function App() {
                                 <div>Name: {recipe.name}</div>
                                 <div>Description: {recipe.description}</div>
                                 <div>Serves: {recipe.serves}</div>
+                                <div>
+                                    Total Time: {recipe.totalTime} minutes
+                                </div>
                                 {user ? (
                                     <button
                                         onClick={() =>
