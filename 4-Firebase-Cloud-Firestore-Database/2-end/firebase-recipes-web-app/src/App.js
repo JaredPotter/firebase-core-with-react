@@ -136,6 +136,8 @@ function App() {
             fetchRecipes();
 
             alert(`successfully create a recipe with an ID = ${response.id}`);
+
+            setCurrentRecipe(null);
         } catch (error) {
             alert(error.message);
 
