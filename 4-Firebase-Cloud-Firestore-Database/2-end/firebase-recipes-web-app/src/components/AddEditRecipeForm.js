@@ -59,13 +59,17 @@ function AddEditRecipeForm({
             return;
         }
 
+        const prepTimeNumber = Number(prepTime);
+        const cookTimeNumber = Number(cookTime);
+
         const newRecipe = {
             name,
             category,
             description,
             serves,
-            prepTime,
-            cookTime,
+            prepTime: prepTimeNumber,
+            cookTime: cookTimeNumber,
+            totalTime: prepTimeNumber + cookTimeNumber,
             directions,
             publishDate,
             ingredients,
