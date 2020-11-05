@@ -12,9 +12,8 @@ function App() {
     const [currentRecipe, setCurrentRecipe] = React.useState(null);
     const [categoryFilter, setCategoryFilter] = React.useState('');
     const [servesFilter, setServesFilter] = React.useState('');
-    const [orderBy, setOrderBy] = React.useState('');
+    const [orderBy, setOrderBy] = React.useState('publishDateDesc');
     const [recipesPerPage, setRecipesPerPage] = React.useState(3);
-    const [cursorId, setCursorId] = React.useState('');
     const [recipes, setRecipes] = React.useState(() => {
         fetchRecipes();
 
@@ -26,7 +25,7 @@ function App() {
 
     FirebaseAuthService.subscribeToAuthChanges(setUser);
 
-    async function fetchRecipes() {
+    async function fetchRecipes(cursorId = '') {
         const queries = [];
 
         if (categoryFilter) {
@@ -99,16 +98,12 @@ function App() {
                 return { ...data, id };
             });
 
-            if (!cursorId) {
-                const last = fetchedRecipes[fetchedRecipes.length - 1];
-
-                if (last) {
-                    setCursorId(last.id);
-                }
-
-                setRecipes(fetchedRecipes);
-            } else {
+            if (cursorId) {
                 const newRecipes = [...recipes, ...fetchedRecipes];
+
+                setRecipes(newRecipes);
+            } else {
+                const newRecipes = [...fetchedRecipes];
 
                 setRecipes(newRecipes);
             }
@@ -255,7 +250,10 @@ function App() {
     }
 
     function handleLoadMoreRecipesClick() {
-        fetchRecipes();
+        const lastRecipe = recipes[recipes.length - 1];
+        const cursorId = lastRecipe.id;
+
+        fetchRecipes(cursorId);
     }
 
     function lookupCategoryLabel(categoryKey) {
