@@ -1,5 +1,7 @@
 import './AddEditRecipeForm.css';
+import FirebaseStorageService from '../FirebaseStorageService';
 import React from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
 function AddEditRecipeForm({
     handleAddRecipe,
@@ -22,6 +24,9 @@ function AddEditRecipeForm({
             );
             setDirections(existingRecipe.directions);
             setIngredients(existingRecipe.ingredients);
+            setImageUrl(existingRecipe.imageUrl);
+            setUploadProgress(-1);
+            fileInputRef.current.value = null;
         } else {
             setName('');
             setCategory('');
@@ -32,6 +37,9 @@ function AddEditRecipeForm({
             setPublishDate(new Date().toISOString().split('T')[0]);
             setDirections('');
             setIngredients([]);
+            setImageUrl('');
+            setUploadProgress(-1);
+            fileInputRef.current.value = null;
         }
     }, [existingRecipe, disabled]);
 
@@ -51,6 +59,37 @@ function AddEditRecipeForm({
     const [ingredientAmount, setIngredientAmount] = React.useState('');
     const [ingredientUnit, setIngredientUnit] = React.useState('');
     const [ingredientName, setIngredientName] = React.useState('');
+    const [imageUrl, setImageUrl] = React.useState('');
+    const [uploadProgress, setUploadProgress] = React.useState(-1);
+
+    const fileInputRef = React.useRef();
+
+    async function handleFileChanged(event) {
+        const files = event.target.files;
+        const file = files[0];
+        const documentId = uuidv4();
+
+        try {
+            const downloadUrl = await FirebaseStorageService.uploadFile(
+                file,
+                `recipes/${documentId}`,
+                setUploadProgress
+            );
+
+            setImageUrl(downloadUrl);
+        } catch (error) {
+            setUploadProgress(-1);
+            fileInputRef.current.value = null;
+            alert(error.message);
+            throw error;
+        }
+    }
+
+    function handleCancelImageClick() {
+        fileInputRef.current.value = null;
+        setImageUrl('');
+        setUploadProgress(-1);
+    }
 
     function handleRecipeFormSubmit(event) {
         event.preventDefault();
@@ -76,6 +115,7 @@ function AddEditRecipeForm({
             directions,
             publishDate: new Date(publishDate),
             ingredients,
+            imageUrl: imageUrl ? imageUrl : '',
         };
 
         if (existingRecipe) {
@@ -118,6 +158,37 @@ function AddEditRecipeForm({
             className="add-edit-recipe-form-container"
         >
             <h3>{existingRecipe ? 'Update The Recipe' : 'Add a New Recipe'}</h3>
+            <div className="image-input">
+                <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChanged}
+                    ref={fileInputRef}
+                    disabled={disabled}
+                    hidden={imageUrl}
+                />
+                {uploadProgress > -1 ? (
+                    <>
+                        <label htmlFor="file">Upload Progress:</label>
+                        <progress id="file" value={uploadProgress} max="100">
+                            {uploadProgress}%
+                        </progress>
+                        <span>{uploadProgress}%</span>
+                    </>
+                ) : null}
+                {imageUrl ? (
+                    <div className="image-preview">
+                        <button
+                            type="button"
+                            onClick={handleCancelImageClick}
+                            disabled={disabled}
+                        >
+                            Cancel Image
+                        </button>
+                        <img src={imageUrl} alt={imageUrl} className="image" />
+                    </div>
+                ) : null}
+            </div>
             <label>
                 Recipe Name:
                 <input

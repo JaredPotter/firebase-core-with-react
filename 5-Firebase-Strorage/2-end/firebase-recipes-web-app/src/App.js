@@ -386,6 +386,12 @@ function App() {
                                 <div className="recipe-card" key={recipe.id}>
                                     <div>ID: {recipe.id}</div>
                                     <div>Name: {recipe.name}</div>
+                                    <div className="recipe-image">
+                                        <img
+                                            src={recipe.imageUrl}
+                                            alt={recipe.name}
+                                        />
+                                    </div>
                                     <div>
                                         Category:{' '}
                                         {lookupCategoryLabel(recipe.category)}
