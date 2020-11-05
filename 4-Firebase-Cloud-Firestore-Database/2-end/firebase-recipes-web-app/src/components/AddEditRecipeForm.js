@@ -5,20 +5,21 @@ function AddEditRecipeForm({
     handleAddRecipe,
     handleUpdateRecipe,
     handleDeleteRecipe,
-    currentRecipe,
+    existingRecipe,
     handleCancelClick,
+    disabled,
 }) {
     React.useEffect(() => {
-        if (currentRecipe) {
-            setName(currentRecipe.name);
-            setCategory(currentRecipe.category);
-            setDescription(currentRecipe.description);
-            setServes(currentRecipe.serves);
-            setPrepTime(currentRecipe.prepTime);
-            setCookTime(currentRecipe.cookTime);
-            setPublishDate(currentRecipe.publishDate);
-            setDirections(currentRecipe.directions);
-            setIngredients(currentRecipe.ingredients);
+        if (existingRecipe) {
+            setName(existingRecipe.name);
+            setCategory(existingRecipe.category);
+            setDescription(existingRecipe.description);
+            setServes(existingRecipe.serves);
+            setPrepTime(existingRecipe.prepTime);
+            setCookTime(existingRecipe.cookTime);
+            setPublishDate(existingRecipe.publishDate);
+            setDirections(existingRecipe.directions);
+            setIngredients(existingRecipe.ingredients);
         } else {
             setName('');
             setCategory('');
@@ -30,7 +31,7 @@ function AddEditRecipeForm({
             setDirections('');
             setIngredients([]);
         }
-    }, [currentRecipe]);
+    }, [existingRecipe, disabled]);
 
     const [name, setName] = React.useState('');
     const [category, setCategory] = React.useState('');
@@ -75,8 +76,8 @@ function AddEditRecipeForm({
             ingredients,
         };
 
-        if (currentRecipe) {
-            newRecipe.id = currentRecipe.id;
+        if (existingRecipe) {
+            newRecipe.id = existingRecipe.id;
             handleUpdateRecipe(newRecipe);
         } else {
             handleAddRecipe(newRecipe);
@@ -114,7 +115,7 @@ function AddEditRecipeForm({
             onSubmit={handleRecipeFormSubmit}
             className="add-edit-recipe-form-container"
         >
-            <h3>{currentRecipe ? 'Update The Recipe' : 'Add a New Recipe'}</h3>
+            <h3>{existingRecipe ? 'Update The Recipe' : 'Add a New Recipe'}</h3>
             <label>
                 Recipe Name:
                 <input
@@ -122,6 +123,7 @@ function AddEditRecipeForm({
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    disabled={disabled}
                 />
             </label>
             <label>
@@ -130,6 +132,7 @@ function AddEditRecipeForm({
                     required
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
+                    disabled={disabled}
                 >
                     <option value="" disabled></option>
                     <option value="breadsSandwichesPizza">
@@ -149,6 +152,7 @@ function AddEditRecipeForm({
                     required
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
+                    disabled={disabled}
                 />
             </label>
             <label>
@@ -158,6 +162,7 @@ function AddEditRecipeForm({
                     type="number"
                     value={serves}
                     onChange={(e) => setServes(e.target.value)}
+                    disabled={disabled}
                 />
             </label>
             <label>
@@ -166,6 +171,7 @@ function AddEditRecipeForm({
                     required
                     value={prepTime}
                     onChange={(e) => setPrepTime(e.target.value)}
+                    disabled={disabled}
                 >
                     <option value="" disabled></option>
                     <option value="5">5 Minutes</option>
@@ -182,6 +188,7 @@ function AddEditRecipeForm({
                     required
                     value={cookTime}
                     onChange={(e) => setCookTime(e.target.value)}
+                    disabled={disabled}
                 >
                     <option value="" disabled></option>
                     <option value="5">5 Minutes</option>
@@ -198,6 +205,7 @@ function AddEditRecipeForm({
                     required
                     value={directions}
                     onChange={(e) => setDirections(e.target.value)}
+                    disabled={disabled}
                 />
             </label>
             <label>
@@ -207,6 +215,7 @@ function AddEditRecipeForm({
                     required
                     value={publishDate}
                     onChange={(e) => setPublishDate(e.target.value)}
+                    disabled={disabled}
                 />
             </label>
             <div className="ingredients-list">
@@ -241,6 +250,7 @@ function AddEditRecipeForm({
                             onChange={(e) =>
                                 setIngredientAmount(e.target.value)
                             }
+                            disabled={disabled}
                         />
                     </label>
                     <label>
@@ -249,6 +259,7 @@ function AddEditRecipeForm({
                             type="text"
                             value={ingredientUnit}
                             onChange={(e) => setIngredientUnit(e.target.value)}
+                            disabled={disabled}
                         />
                     </label>
                     <label>
@@ -257,25 +268,35 @@ function AddEditRecipeForm({
                             type="text"
                             value={ingredientName}
                             onChange={(e) => setIngredientName(e.target.value)}
+                            disabled={disabled}
                         />
                     </label>
-                    <button type="button" onClick={handleAddIngredientClick}>
+                    <button
+                        type="button"
+                        onClick={handleAddIngredientClick}
+                        disabled={disabled}
+                    >
                         Add Ingredient
                     </button>
                 </div>
             </div>
 
-            <button type="submit">
-                {currentRecipe ? 'Update Recipe' : 'Create Recipe'}
+            <button type="submit" disabled={disabled}>
+                {existingRecipe ? 'Update Recipe' : 'Create Recipe'}
             </button>
-            {currentRecipe ? (
+            {existingRecipe ? (
                 <>
-                    <button type="button" onClick={handleCancelClick}>
+                    <button
+                        type="button"
+                        onClick={handleCancelClick}
+                        disabled={disabled}
+                    >
                         Cancel
                     </button>
                     <button
                         type="button"
-                        onClick={() => handleDeleteRecipe(currentRecipe.id)}
+                        onClick={() => handleDeleteRecipe(existingRecipe.id)}
+                        disabled={disabled}
                     >
                         Delete
                     </button>

@@ -21,7 +21,18 @@ const createDocument = (collection, document) => {
     return firestore.collection(collection).add(document);
 };
 
-const readDocuments = (collection, queries, orderByField, orderByDirection) => {
+const readDocument = (collection, id) => {
+    return firestore.collection(collection).doc(id).get();
+};
+
+const readDocuments = async (
+    collection,
+    queries,
+    orderByField,
+    orderByDirection,
+    perPage,
+    cursorId
+) => {
     let collectionRef = firestore.collection(collection);
 
     if (queries && queries.length > 0) {
@@ -41,6 +52,16 @@ const readDocuments = (collection, queries, orderByField, orderByDirection) => {
         collectionRef = collectionRef.orderBy(orderByField, orderByDirection);
     }
 
+    if (perPage) {
+        collectionRef = collectionRef.limit(perPage);
+    }
+
+    if (cursorId) {
+        const document = await readDocument(collection, cursorId);
+
+        collectionRef = collectionRef.startAfter(document);
+    }
+
     return collectionRef.get();
 };
 
@@ -54,6 +75,7 @@ const deleteDocument = (collection, id) => {
 
 const FirebaseFirestoreService = {
     createDocument,
+    readDocument,
     readDocuments,
     updateDocument,
     deleteDocument,
