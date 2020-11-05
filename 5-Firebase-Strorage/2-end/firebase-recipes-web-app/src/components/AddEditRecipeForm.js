@@ -17,7 +17,9 @@ function AddEditRecipeForm({
             setServes(existingRecipe.serves);
             setPrepTime(existingRecipe.prepTime);
             setCookTime(existingRecipe.cookTime);
-            setPublishDate(existingRecipe.publishDate);
+            setPublishDate(
+                existingRecipe.publishDate.toISOString().split('T')[0]
+            );
             setDirections(existingRecipe.directions);
             setIngredients(existingRecipe.ingredients);
         } else {
