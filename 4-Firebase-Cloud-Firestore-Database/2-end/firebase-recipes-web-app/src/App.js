@@ -237,6 +237,7 @@ function App() {
     }
 
     function handleRecipeEditClick(recipeId) {
+        debugger;
         const selectedRecipe = recipes.find((recipe) => {
             return recipe.id === recipeId;
         });
@@ -438,7 +439,7 @@ function App() {
                     handleAddRecipe={handleAddRecipe}
                     handleUpdateRecipe={handleUpdateRecipe}
                     handleDeleteRecipe={handleDeleteRecipe}
-                    currentRecipe={currentRecipe}
+                    existingRecipe={currentRecipe}
                     handleCancelClick={handleCancelClick}
                     disabled={disableRecipeForm}
                 />
