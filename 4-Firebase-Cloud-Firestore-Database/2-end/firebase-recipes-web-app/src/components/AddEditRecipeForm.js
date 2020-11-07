@@ -29,7 +29,7 @@ function AddEditRecipeForm({
             setServes(4);
             setPrepTime('');
             setCookTime('');
-            setPublishDate(new Date().toISOString().split('T')[0]);
+            setPublishDate('');
             setDirections('');
             setIngredients([]);
         }
@@ -65,6 +65,8 @@ function AddEditRecipeForm({
         const prepTimeNumber = Number(prepTime);
         const cookTimeNumber = Number(cookTime);
 
+        const isPublished = new Date(publishDate) <= new Date() ? true : false;
+
         const newRecipe = {
             name,
             category,
@@ -75,6 +77,7 @@ function AddEditRecipeForm({
             totalTime: prepTimeNumber + cookTimeNumber,
             directions,
             publishDate: new Date(publishDate),
+            isPublished,
             ingredients,
         };
 
@@ -245,6 +248,15 @@ function AddEditRecipeForm({
                     : null}
                 <div className="ingredient-form">
                     <label>
+                        Ingredient:
+                        <input
+                            type="text"
+                            value={ingredientName}
+                            onChange={(e) => setIngredientName(e.target.value)}
+                            disabled={disabled}
+                        />
+                    </label>
+                    <label>
                         Amount:
                         <input
                             type="text"
@@ -261,15 +273,6 @@ function AddEditRecipeForm({
                             type="text"
                             value={ingredientUnit}
                             onChange={(e) => setIngredientUnit(e.target.value)}
-                            disabled={disabled}
-                        />
-                    </label>
-                    <label>
-                        Ingredient:
-                        <input
-                            type="text"
-                            value={ingredientName}
-                            onChange={(e) => setIngredientName(e.target.value)}
                             disabled={disabled}
                         />
                     </label>

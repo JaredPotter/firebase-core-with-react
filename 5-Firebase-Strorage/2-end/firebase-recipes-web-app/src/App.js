@@ -21,7 +21,7 @@ function App() {
     });
     React.useEffect(() => {
         fetchRecipes();
-    }, [categoryFilter, servesFilter, orderBy, recipesPerPage]);
+    }, [categoryFilter, servesFilter, user, orderBy, recipesPerPage]);
 
     FirebaseAuthService.subscribeToAuthChanges(setUser);
 
@@ -50,6 +50,14 @@ function App() {
                     value: Number(servesFilter),
                 });
             }
+        }
+
+        if (!user) {
+            queries.push({
+                field: 'isPublished',
+                condition: '==',
+                value: true,
+            });
         }
 
         let orderByField;
@@ -268,8 +276,8 @@ function App() {
     }
 
     function formatDate(date) {
-        let dd = date.getDate();
-        let mm = date.getMonth() + 1;
+        let dd = date.getUTCDate();
+        let mm = date.getUTCMonth() + 1;
         const yyyy = date.getFullYear();
 
         if (dd < 10) {
