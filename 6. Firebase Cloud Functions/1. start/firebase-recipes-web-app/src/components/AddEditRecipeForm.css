@@ -1,0 +1,20 @@
+.add-edit-recipe-form-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.ingredients-list {
+    margin-left: 1rem;
+}
+
+.image-preview {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+}
+
+.image {
+    object-fit: cover;
+    width: 100%;
+}
+
