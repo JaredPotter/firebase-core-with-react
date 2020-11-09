@@ -8,7 +8,6 @@ const config = {
     storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
     messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
     appId: process.env.REACT_APP_FIREBASE_APP_ID,
-    measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
 };
 
 if (!firebase.apps.length) {
@@ -16,7 +15,6 @@ if (!firebase.apps.length) {
 }
 
 const auth = firebase.auth();
-
 
 //REACT_APP_CLOUD_FIRESTORE_FUNCTION_API_URL="https://us-central1-fir-recipes-3d91c.cloudfunctions.net/api"
 const BASE_URL = process.env.REACT_APP_CLOUD_FIRESTORE_FUNCTION_API_URL;
