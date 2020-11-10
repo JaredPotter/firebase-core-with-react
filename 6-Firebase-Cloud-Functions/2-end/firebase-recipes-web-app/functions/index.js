@@ -10,7 +10,7 @@ const FIRESTORE_RECIPE_COLLECTION = process.env.FIRESTORE_RECIPE_COLLECTION;
 if (!FIRESTORE_RECIPE_COLLECTION) {
     throw {
         message:
-            'Firestore collection environment variable not set. Please add FIRESTORE_RECIPE_COLLECTION to your .env file.',
+            'environment variable not set. Please add FIRESTORE_RECIPE_COLLECTION to your .env file.',
     };
 }
 
@@ -19,14 +19,14 @@ const FIREBASE_STORAGE_BUCKET = process.env.FIREBASE_STORAGE_BUCKET;
 if (!FIREBASE_STORAGE_BUCKET) {
     throw {
         message:
-            'Firestore storage bucket environment variable not set. Please add FIREBASE_STORAGE_BUCKET to your .env file.',
+            'environment variable not set. Please add FIREBASE_STORAGE_BUCKET to your .env file.',
     };
 }
 
 // SETUP FIREBASE
 const serviceAccount = require('./fir-recipes-3d91c-firebase-adminsdk-wyvwz-d53a1193f0.json');
 
-let apiFirebaseOption = functions.config().firebase;
+const apiFirebaseOption = functions.config().firebase;
 apiFirebaseOption = {
     ...apiFirebaseOption,
     credential: admin.credential.cert(serviceAccount),
@@ -170,7 +170,6 @@ app.get('/recipes', async (request, response) => {
 
     try {
         const firestoreResponse = await collectionRef.get();
-
         const fetchedRecipes = firestoreResponse.docs.map((recipe) => {
             const id = recipe.id;
             const data = recipe.data();
@@ -205,6 +204,7 @@ app.get('/recipes/:id', async (request, response) => {
             recipeData.publishDate = recipeData.publishDate._seconds;
 
             const recipe = { ...recipeData, id };
+
             response.status(200).send(recipe);
         } else {
             response.status(404).send('Document does not exist');
