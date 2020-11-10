@@ -37,13 +37,20 @@ const app = express();
 // allows us (the server) to respond to
 // requests from a different origin (URL)
 // than the server.
-app.use(cors());
+app.use(cors({ origin: true }));
 
 // Installing the body-parser middleware
 // Allow us to read JSON from requests
 app.use(bodyParser.json());
 
 const FIRESTORE_RECIPE_COLLECTION = process.env.FIRESTORE_RECIPE_COLLECTION;
+
+if (!FIRESTORE_RECIPE_COLLECTION) {
+    throw {
+        message:
+            'Firestore collection environment variable not set. Please add FIRESTORE_RECIPE_COLLECTION to your .env file.',
+    };
+}
 
 // ~~ RESTFUL CRUD WEB API ENDPOINTS ~~
 
@@ -52,7 +59,7 @@ app.post('/recipes', async (request, response) => {
     const authorizationHeader = request.headers['authorization'];
 
     if (!authorizationHeader) {
-        response.status(401).send('Missing/Incorrect Authorization header');
+        response.status(401).send('Missing Authorization header');
         return;
     }
 
@@ -60,15 +67,18 @@ app.post('/recipes', async (request, response) => {
         await authorizeUser(authorizationHeader);
     } catch (error) {
         response.status(401).send(error.message);
+        return;
     }
 
     const newRecipe = request.body;
-    const isValid = validateRecipePostPut(newRecipe);
+    const missingFields = validateRecipePostPut(newRecipe);
 
-    if (!isValid) {
+    if (missingFields) {
         response
             .status(400)
-            .send('Recipe is not valid. Missing/invalid fields.');
+            .send(
+                `Recipe is not valid. Missing/invalid fields: ${missingFields}`
+            );
         return;
     }
 
@@ -81,7 +91,7 @@ app.post('/recipes', async (request, response) => {
 
         const recipeId = firestoreResponse.id;
 
-        response.status(201).send(recipeId);
+        response.status(201).send({ id: recipeId });
     } catch (error) {
         response.status(400).send(error.message);
         return;
@@ -204,7 +214,7 @@ app.patch('/recipes/:id', async (request, response) => {
     const authorizationHeader = request.headers['authorization'];
 
     if (!authorizationHeader) {
-        response.status(401).send('Missing/Incorrect Authorization header');
+        response.status(401).send('Missing Authorization header');
         return;
     }
 
@@ -212,6 +222,7 @@ app.patch('/recipes/:id', async (request, response) => {
         await authorizeUser(authorizationHeader);
     } catch (error) {
         response.status(401).send(error.message);
+        return;
     }
 
     const id = request.params.id;
@@ -224,7 +235,7 @@ app.patch('/recipes/:id', async (request, response) => {
             .doc(id)
             .set(recipe, { merge: true });
 
-        response.status(200).send();
+        response.status(200).send({ id });
     } catch (error) {
         response.status(400).send(error.message);
     }
@@ -235,7 +246,7 @@ app.put('/recipes/:id', async (request, response) => {
     const authorizationHeader = request.headers['authorization'];
 
     if (!authorizationHeader) {
-        response.status(401).send('Missing/Incorrect Authorization header');
+        response.status(401).send('Missing Authorization header');
         return;
     }
 
@@ -243,16 +254,19 @@ app.put('/recipes/:id', async (request, response) => {
         await authorizeUser(authorizationHeader);
     } catch (error) {
         response.status(401).send(error.message);
+        return;
     }
 
     const id = request.params.id;
     const newRecipe = request.body;
-    const isValid = validateRecipePostPut(newRecipe);
+    const missingFields = validateRecipePostPut(newRecipe);
 
-    if (!isValid) {
+    if (missingFields) {
         response
             .status(400)
-            .send('Recipe is not valid. Missing/invalid fields.');
+            .send(
+                `Recipe is not valid. Missing/invalid fields: ${missingFields}`
+            );
         return;
     }
 
@@ -264,7 +278,7 @@ app.put('/recipes/:id', async (request, response) => {
             .doc(id)
             .set(recipe);
 
-        response.status(200).send();
+        response.status(200).send({ id });
     } catch (error) {
         response.status(400).send(error.message);
     }
@@ -275,7 +289,7 @@ app.delete('/recipes/:id', async (request, response) => {
     const authorizationHeader = request.headers['authorization'];
 
     if (!authorizationHeader) {
-        response.status(401).send('Missing/Incorrect Authorization header');
+        response.status(401).send('Missing Authorization header');
         return;
     }
 
@@ -321,24 +335,63 @@ const authorizeUser = async (authorizationHeader) => {
 };
 
 const validateRecipePostPut = (newRecipe) => {
-    if (
-        !newRecipe ||
-        !newRecipe.name ||
-        !newRecipe.category ||
-        !newRecipe.description ||
-        !newRecipe.serves ||
-        !newRecipe.prepTime ||
-        !newRecipe.cookTime ||
-        !newRecipe.totalTime ||
-        !newRecipe.directions ||
-        !newRecipe.publishDate ||
-        newRecipe.ingredients.length === 0 ||
-        !newRecipe.imageUrl
-    ) {
-        return false;
+    let missingFields = '';
+
+    if (!newRecipe) {
+        missingFields += 'recipe, ';
+
+        return missingFields;
     }
 
-    return true;
+    if (!newRecipe.name) {
+        missingFields += 'name, ';
+    }
+
+    if (!newRecipe.category) {
+        missingFields += 'category, ';
+    }
+
+    if (!newRecipe.description) {
+        missingFields += 'description, ';
+    }
+
+    if (!newRecipe.serves) {
+        missingFields += 'serves, ';
+    }
+
+    if (!newRecipe.prepTime) {
+        missingFields += 'prepTime, ';
+    }
+
+    if (!newRecipe.cookTime) {
+        missingFields += 'cookTime, ';
+    }
+
+    if (!newRecipe.totalTime) {
+        missingFields += 'totalTime, ';
+    }
+
+    if (!newRecipe.directions) {
+        missingFields += 'directions, ';
+    }
+
+    if (newRecipe.isPublished !== true && newRecipe.isPublished !== false) {
+        missingFields += 'isPublished, ';
+    }
+
+    if (!newRecipe.publishDate) {
+        missingFields += 'publishDate, ';
+    }
+
+    if (!newRecipe.ingredients || newRecipe.ingredients.length === 0) {
+        missingFields += 'ingredients, ';
+    }
+
+    if (!newRecipe.imageUrl) {
+        missingFields += 'imageUrl, ';
+    }
+
+    return missingFields;
 };
 
 const sanitizeRecipePostPut = (newRecipe) => {
@@ -353,6 +406,7 @@ const sanitizeRecipePostPut = (newRecipe) => {
     recipe.totalTime = newRecipe.totalTime;
     recipe.directions = newRecipe.directions;
     recipe.publishDate = new Date(newRecipe.publishDate * 1000);
+    recipe.isPublished = newRecipe.isPublished;
     recipe.ingredients = newRecipe.ingredients;
     recipe.imageUrl = newRecipe.imageUrl;
 

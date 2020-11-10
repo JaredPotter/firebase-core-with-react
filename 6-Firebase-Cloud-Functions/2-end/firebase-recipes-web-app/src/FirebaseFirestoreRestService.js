@@ -16,23 +16,7 @@ if (!firebase.apps.length) {
 
 const auth = firebase.auth();
 
-//REACT_APP_CLOUD_FIRESTORE_FUNCTION_API_URL="https://us-central1-fir-recipes-3d91c.cloudfunctions.net/api"
 const BASE_URL = process.env.REACT_APP_CLOUD_FIRESTORE_FUNCTION_API_URL;
-
-// let _user = null;
-
-// auth.onAuthStateChanged(async (user) => {
-//     if (user) {
-//         _user = user;
-//         const currentUser = auth.currentUser;
-//         debugger;
-//         const token = await currentUser.getIdToken();
-//         debugger;
-//     } else {
-//         _user = null;
-//         debugger;
-//     }
-// });
 
 const createDocument = async (collection, document) => {
     let token;
@@ -45,13 +29,23 @@ const createDocument = async (collection, document) => {
     }
 
     try {
-        await fetch(`${BASE_URL}/${collection}`, {
+        const response = await fetch(`${BASE_URL}/${collection}`, {
             method: 'POST',
             headers: {
                 Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify(document),
         });
+
+        if (response.status !== 201) {
+            const errorMessage = await response.text();
+            const error = { message: errorMessage };
+
+            throw error;
+        }
+
+        return response.json();
     } catch (error) {
         alert(error.message);
         throw error;
@@ -124,6 +118,13 @@ const readDocuments = async (
             },
         });
 
+        if (response.status !== 200) {
+            const errorMessage = await response.text();
+            const error = { message: errorMessage };
+
+            throw error;
+        }
+
         return response.json();
     } catch (error) {
         alert(error.message);
@@ -142,14 +143,24 @@ const updateDocument = async (collection, id, document) => {
     }
 
     try {
-        await fetch(`${BASE_URL}/${collection}/${id}`, {
+        const response = await fetch(`${BASE_URL}/${collection}/${id}`, {
             method: 'PUT',
             // method: 'PATCH',
             headers: {
                 Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify(document),
         });
+
+        if (response.status !== 200) {
+            const errorMessage = await response.text();
+            const error = { message: errorMessage };
+
+            throw error;
+        }
+
+        return { id: response.id };
     } catch (error) {
         alert(error.message);
         throw error;
@@ -167,7 +178,7 @@ const deleteDocument = async (collection, id) => {
     }
 
     try {
-        await fetch(`${BASE_URL}/${collection}`, {
+        await fetch(`${BASE_URL}/${collection}/${id}`, {
             method: 'DELETE',
             headers: {
                 Authorization: `Bearer ${token}`,

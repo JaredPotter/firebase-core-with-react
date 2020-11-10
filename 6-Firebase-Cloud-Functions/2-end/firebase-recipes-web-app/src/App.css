@@ -23,3 +23,11 @@
     height: 100px;
     object-fit: cover;
 }
+
+.selected-page {
+    background: white;
+} 
+
+.page-button {
+    cursor: pointer;
+}

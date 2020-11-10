@@ -1,7 +1,7 @@
 import './App.css';
 import React from 'react';
 import FirebaseAuthService from './FirebaseAuthService';
-import FirebaseFirestoreRestService from './FirebaseFirestoreRestService';
+import FirebaseFirestoreService from './FirebaseFirestoreService';
 import AddEditRecipeForm from './components/AddEditRecipeForm';
 
 function App() {
@@ -14,11 +14,6 @@ function App() {
     const [servesFilter, setServesFilter] = React.useState('');
     const [orderBy, setOrderBy] = React.useState('publishDateDesc');
     const [recipesPerPage, setRecipesPerPage] = React.useState(3);
-    const [
-        collectionDocumentCount,
-        setCollectionDocumentCount,
-    ] = React.useState(0);
-    const [currentPageNumber, setCurrentPageNumber] = React.useState(1);
     const [recipes, setRecipes] = React.useState(() => {
         fetchRecipes();
 
@@ -26,18 +21,11 @@ function App() {
     });
     React.useEffect(() => {
         fetchRecipes();
-    }, [
-        categoryFilter,
-        servesFilter,
-        user,
-        orderBy,
-        recipesPerPage,
-        currentPageNumber,
-    ]);
+    }, [categoryFilter, servesFilter, user, orderBy, recipesPerPage]);
 
     FirebaseAuthService.subscribeToAuthChanges(setUser);
 
-    async function fetchRecipes() {
+    async function fetchRecipes(cursorId = '') {
         const queries = [];
 
         if (categoryFilter) {
@@ -99,31 +87,33 @@ function App() {
         }
 
         try {
-            const response = await FirebaseFirestoreRestService.readDocuments(
+            const response = await FirebaseFirestoreService.readDocuments(
                 'recipes',
                 queries,
                 orderByField,
                 orderByDirection,
                 recipesPerPage,
-                null,
-                currentPageNumber
+                cursorId
             );
 
-            if (response && response.documents) {
-                setCollectionDocumentCount(response.collectionDocumentCount);
+            const fetchedRecipes = response.docs.map((recipe) => {
+                const id = recipe.id;
 
-                const fetchedRecipes = response.documents;
+                const data = recipe.data();
+                const unixPublishDate = data.publishDate.seconds;
+                data.publishDate = new Date(unixPublishDate * 1000);
 
-                fetchedRecipes.forEach((recipe) => {
-                    const unixPublishDate = recipe.publishDate;
-                    recipe.publishDate = new Date(unixPublishDate * 1000);
+                return { ...data, id };
+            });
 
-                    return recipe;
-                });
+            if (cursorId) {
+                const newRecipes = [...recipes, ...fetchedRecipes];
 
-                setRecipes(fetchedRecipes);
+                setRecipes(newRecipes);
             } else {
-                throw { message: 'Failed to load recipes!' };
+                const newRecipes = [...fetchedRecipes];
+
+                setRecipes(newRecipes);
             }
         } catch (error) {
             alert(error.message);
@@ -177,9 +167,7 @@ function App() {
         try {
             setDisableRecipeForm(true);
 
-            newRecipe.publishDate = newRecipe.publishDate.getTime() / 1000;
-
-            const response = await FirebaseFirestoreRestService.createDocument(
+            const response = await FirebaseFirestoreService.createDocument(
                 'recipes',
                 newRecipe
             );
@@ -200,10 +188,7 @@ function App() {
         try {
             setDisableRecipeForm(true);
 
-            updatedRecipe.publishDate =
-                updatedRecipe.publishDate.getTime() / 1000;
-
-            await FirebaseFirestoreRestService.updateDocument(
+            await FirebaseFirestoreService.updateDocument(
                 'recipes',
                 updatedRecipe.id,
                 updatedRecipe
@@ -221,8 +206,6 @@ function App() {
         } catch (error) {
             alert(error.message);
 
-            setDisableRecipeForm(false);
-
             throw error;
         }
     }
@@ -234,7 +217,7 @@ function App() {
 
         if (deleteConfirmation) {
             try {
-                await FirebaseFirestoreRestService.deleteDocument(
+                await FirebaseFirestoreService.deleteDocument(
                     'recipes',
                     recipeId
                 );
@@ -273,6 +256,13 @@ function App() {
         setRecipesPerPage(recipesPerPage);
     }
 
+    function handleLoadMoreRecipesClick() {
+        const lastRecipe = recipes[recipes.length - 1];
+        const cursorId = lastRecipe.id;
+
+        fetchRecipes(cursorId);
+    }
+
     function lookupCategoryLabel(categoryKey) {
         const categories = {
             breadsSandwichesPizza: 'Breads, Sandwiches, and Pizza',
@@ -299,32 +289,6 @@ function App() {
         }
 
         return `${mm}-${dd}-${yyyy}`;
-    }
-
-    function buildPagination() {
-        const totalNumberOfPages = Math.ceil(
-            collectionDocumentCount / recipesPerPage
-        );
-
-        const pages = [];
-
-        for (let i = 1; i < totalNumberOfPages + 1; i++) {
-            pages.push(
-                <button
-                    key={i}
-                    onClick={() => setCurrentPageNumber(i)}
-                    className={
-                        currentPageNumber === i
-                            ? 'selected-page page-button'
-                            : 'page-button'
-                    }
-                >
-                    {i}
-                </button>
-            );
-        }
-
-        return pages;
     }
 
     return (
@@ -474,7 +438,9 @@ function App() {
                             <option value="4">4</option>
                         </select>
                     </label>
-                    <div>{buildPagination()}</div>
+                    <button onClick={handleLoadMoreRecipesClick}>
+                        LOAD MORE RECIPES
+                    </button>
                 </div>
             ) : (
                 <h5>No Recipes Found!</h5>
