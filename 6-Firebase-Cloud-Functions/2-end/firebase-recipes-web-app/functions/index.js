@@ -26,7 +26,7 @@ if (!FIREBASE_STORAGE_BUCKET) {
 // SETUP FIREBASE
 const serviceAccount = require('./fir-recipes-3d91c-firebase-adminsdk-wyvwz-d53a1193f0.json');
 
-const apiFirebaseOption = functions.config().firebase;
+let apiFirebaseOption = functions.config().firebase;
 apiFirebaseOption = {
     ...apiFirebaseOption,
     credential: admin.credential.cert(serviceAccount),
