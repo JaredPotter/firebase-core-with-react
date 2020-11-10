@@ -40,8 +40,18 @@ const uploadFile = (file, fullFilePath, progressCallback, UrlCallback) => {
     });
 };
 
+const deleteFile = (fileDownloadUrl) => {
+    const decodedUrl = decodeURIComponent(fileDownloadUrl);
+    const startIndex = decodedUrl.indexOf('/o/') + 3;
+    const endIndex = decodedUrl.indexOf('?');
+    const filePath = decodedUrl.substring(startIndex, endIndex);
+
+    return storageRef.child(filePath).delete();
+};
+
 const FirebaseStorageService = {
     uploadFile,
+    deleteFile,
 };
 
 export default FirebaseStorageService;
