@@ -5,6 +5,24 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 require('dotenv').config();
 
+const FIRESTORE_RECIPE_COLLECTION = process.env.FIRESTORE_RECIPE_COLLECTION;
+
+if (!FIRESTORE_RECIPE_COLLECTION) {
+    throw {
+        message:
+            'Firestore collection environment variable not set. Please add FIRESTORE_RECIPE_COLLECTION to your .env file.',
+    };
+}
+
+const FIREBASE_STORAGE_BUCKET = process.env.FIREBASE_STORAGE_BUCKET;
+
+if (!FIREBASE_STORAGE_BUCKET) {
+    throw {
+        message:
+            'Firestore storage bucket environment variable not set. Please add FIREBASE_STORAGE_BUCKET to your .env file.',
+    };
+}
+
 // SETUP FIREBASE
 const serviceAccount = require('./fir-recipes-3d91c-firebase-adminsdk-wyvwz-d53a1193f0.json');
 
@@ -12,9 +30,6 @@ let apiFirebaseOption = functions.config().firebase;
 apiFirebaseOption = {
     ...apiFirebaseOption,
     credential: admin.credential.cert(serviceAccount),
-    databaseURL: process.env.FIREBASE_DATABASE_URL,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
 };
 
 admin.initializeApp(apiFirebaseOption);
@@ -24,12 +39,11 @@ const settings = { timestampsInSnapshots: true };
 
 firestore.settings(settings);
 
+// Firebase Admin Auth
 const auth = admin.auth();
 
-// For example's sake - How to use Firebase Storage w/ firebase-admin
-// const storage = admin.storage();
-// OR ?
-// const storage = admin.storage().bucket();
+// Firebase Admin Storage
+const bucket = admin.storage().bucket(FIREBASE_STORAGE_BUCKET);
 
 const app = express();
 
@@ -42,15 +56,6 @@ app.use(cors({ origin: true }));
 // Installing the body-parser middleware
 // Allow us to read JSON from requests
 app.use(bodyParser.json());
-
-const FIRESTORE_RECIPE_COLLECTION = process.env.FIRESTORE_RECIPE_COLLECTION;
-
-if (!FIRESTORE_RECIPE_COLLECTION) {
-    throw {
-        message:
-            'Firestore collection environment variable not set. Please add FIRESTORE_RECIPE_COLLECTION to your .env file.',
-    };
-}
 
 // ~~ RESTFUL CRUD WEB API ENDPOINTS ~~
 
@@ -481,6 +486,26 @@ exports.onCreateRecipe = functions.firestore
 exports.onDeleteRecipe = functions.firestore
     .document('recipes/{recipeId}')
     .onDelete(async (snap, context) => {
+        const recipe = snap.data();
+        const imageUrl = recipe.imageUrl;
+
+        if (imageUrl) {
+            const decodedUrl = decodeURIComponent(imageUrl);
+            const startIndex = decodedUrl.indexOf('/o/') + 3;
+            const endIndex = decodedUrl.indexOf('?');
+            const fullFilePath = decodedUrl.substring(startIndex, endIndex);
+            const file = bucket.file(fullFilePath);
+
+            console.log(`Attempting to delete: ${fullFilePath}`);
+
+            try {
+                await file.delete();
+                console.log('Successfully deleted image');
+            } catch (error) {
+                console.log(`Failed to Delete File: ${error.message}`);
+            }
+        }
+
         const docRef = firestore
             .collection('collectionDocumentCount')
             .doc('recipes');
@@ -501,7 +526,7 @@ const runtimeOpts = {
 
 exports.dailyCheckRecipePublishDate = functions
     .runWith(runtimeOpts)
-    .pubsub.schedule('0 0 * * *') // At midnight server time
+    .pubsub.schedule('0 0 * * *') // at minute 0 (midnight) every day, server time
     .onRun(async () => {
         console.log('dailyCheckRecipePublishDate() called - time to check');
 
