@@ -234,6 +234,7 @@ function AddEditRecipeForm({
                                   <span>{ingredient.name} </span>
                                   <button
                                       type="button"
+                                      disabled={disabled}
                                       onClick={() =>
                                           handleDeleteIngredient(
                                               ingredient.name

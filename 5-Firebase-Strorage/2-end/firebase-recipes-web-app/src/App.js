@@ -3,6 +3,7 @@ import React from 'react';
 import FirebaseAuthService from './FirebaseAuthService';
 import FirebaseFirestoreService from './FirebaseFirestoreService';
 import AddEditRecipeForm from './components/AddEditRecipeForm';
+import FirebaseStorageService from './FirebaseStorageService';
 
 function App() {
     const [username, setUsername] = React.useState('');
@@ -221,6 +222,21 @@ function App() {
                     'recipes',
                     recipeId
                 );
+
+                const recipe = recipes.find((recipe) => {
+                    return recipe.id === recipeId;
+                });
+
+                if (recipe && recipe.imageUrl) {
+                    try {
+                        await FirebaseStorageService.deleteFile(
+                            recipe.imageUrl
+                        );
+                    } catch (error) {
+                        alert(error.message);
+                        throw error;
+                    }
+                }
 
                 fetchRecipes();
 
