@@ -169,6 +169,7 @@ function AddEditRecipeForm({
                     ref={fileInputRef}
                     disabled={disabled}
                     hidden={imageUrl}
+                    required
                 />
                 {uploadProgress > -1 ? (
                     <>
@@ -305,6 +306,7 @@ function AddEditRecipeForm({
                                   <span>{ingredient.name} </span>
                                   <button
                                       type="button"
+                                      disabled={disabled}
                                       onClick={() =>
                                           handleDeleteIngredient(
                                               ingredient.name
