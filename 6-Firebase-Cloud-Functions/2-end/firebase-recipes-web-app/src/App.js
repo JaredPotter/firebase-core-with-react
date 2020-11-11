@@ -14,11 +14,9 @@ function App() {
     const [servesFilter, setServesFilter] = React.useState('');
     const [orderBy, setOrderBy] = React.useState('publishDateDesc');
     const [recipesPerPage, setRecipesPerPage] = React.useState(3);
-    const [
-        collectionDocumentCount,
-        setCollectionDocumentCount,
-    ] = React.useState(0);
     const [currentPageNumber, setCurrentPageNumber] = React.useState(1);
+    const [isLastPage, setIsLastPage] = React.useState(false);
+    const [totalNumberOfPages, setTotalNumberOfPages] = React.useState(0);
     const [recipes, setRecipes] = React.useState(() => {
         fetchRecipes();
 
@@ -110,7 +108,31 @@ function App() {
             );
 
             if (response && response.documents) {
-                setCollectionDocumentCount(response.collectionDocumentCount);
+                const totalNumberOfPages = Math.ceil(
+                    response.collectionDocumentCount / recipesPerPage
+                );
+
+                setTotalNumberOfPages(totalNumberOfPages);
+
+                const nextPageResponse = await FirebaseFirestoreRestService.readDocuments(
+                    'recipes',
+                    queries,
+                    orderByField,
+                    orderByDirection,
+                    recipesPerPage,
+                    null,
+                    currentPageNumber + 1
+                );
+
+                if (
+                    nextPageResponse &&
+                    nextPageResponse.documents &&
+                    nextPageResponse.documents.length === 0
+                ) {
+                    setIsLastPage(true);
+                } else {
+                    setIsLastPage(false);
+                }
 
                 const fetchedRecipes = response.documents;
 
@@ -120,6 +142,10 @@ function App() {
 
                     return recipe;
                 });
+
+                if (fetchedRecipes.length === 0 && currentPageNumber !== 1) {
+                    setCurrentPageNumber(currentPageNumber - 1);
+                }
 
                 setRecipes(fetchedRecipes);
             } else {
@@ -269,6 +295,7 @@ function App() {
 
     function handleRecipesPerPageChange(e) {
         const recipesPerPage = e.target.value;
+
         setRecipes([]);
         setRecipesPerPage(recipesPerPage);
     }
@@ -299,32 +326,6 @@ function App() {
         }
 
         return `${mm}-${dd}-${yyyy}`;
-    }
-
-    function buildPagination() {
-        const totalNumberOfPages = Math.ceil(
-            collectionDocumentCount / recipesPerPage
-        );
-
-        const pages = [];
-
-        for (let i = 1; i < totalNumberOfPages + 1; i++) {
-            pages.push(
-                <button
-                    key={i}
-                    onClick={() => setCurrentPageNumber(i)}
-                    className={
-                        currentPageNumber === i
-                            ? 'selected-page page-button'
-                            : 'page-button'
-                    }
-                >
-                    {i}
-                </button>
-            );
-        }
-
-        return pages;
     }
 
     return (
@@ -474,11 +475,64 @@ function App() {
                             <option value="4">4</option>
                         </select>
                     </label>
-                    <div>{buildPagination()}</div>
+                    <div className="pagination">
+                        <div className="row">
+                            <button
+                                className={
+                                    currentPageNumber === 1
+                                        ? 'button hidden'
+                                        : 'button'
+                                }
+                                onClick={() =>
+                                    setCurrentPageNumber(currentPageNumber - 1)
+                                }
+                            >
+                                Previous
+                            </button>
+                            <div>Page {currentPageNumber}</div>
+                            <button
+                                className={
+                                    isLastPage ? 'button hidden' : 'button'
+                                }
+                                onClick={() =>
+                                    setCurrentPageNumber(currentPageNumber + 1)
+                                }
+                            >
+                                Next
+                            </button>
+                        </div>
+                        <div className="row">
+                            {!categoryFilter && !servesFilter
+                                ? new Array(totalNumberOfPages)
+                                      .fill(0)
+                                      .map((value, index) => {
+                                          return (
+                                              <button
+                                                  key={index + 1}
+                                                  onClick={() =>
+                                                      setCurrentPageNumber(
+                                                          index + 1
+                                                      )
+                                                  }
+                                                  className={
+                                                      currentPageNumber ===
+                                                      index + 1
+                                                          ? 'selected-page page-button'
+                                                          : 'page-button'
+                                                  }
+                                              >
+                                                  {index + 1}
+                                              </button>
+                                          );
+                                      })
+                                : null}
+                        </div>
+                    </div>
                 </div>
             ) : (
                 <h5>No Recipes Found!</h5>
             )}
+
             {user ? (
                 <AddEditRecipeForm
                     handleAddRecipe={handleAddRecipe}

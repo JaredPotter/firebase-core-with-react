@@ -31,3 +31,23 @@
 .page-button {
     cursor: pointer;
 }
+
+.pagination {
+
+    width: 15rem
+}
+
+.button {
+    margin: 1rem;
+    cursor: pointer;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.hidden {
+    visibility: hidden;
+}
