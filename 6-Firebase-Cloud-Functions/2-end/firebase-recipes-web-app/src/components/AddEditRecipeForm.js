@@ -1,4 +1,3 @@
-import './AddEditRecipeForm.css';
 import FirebaseStorageService from '../FirebaseStorageService';
 import React from 'react';
 import { v4 as uuidv4 } from 'uuid';
@@ -101,6 +100,11 @@ function AddEditRecipeForm({
             return;
         }
 
+        if (!imageUrl) {
+            alert('Missing recipe image. Please add recipe image.');
+            return;
+        }
+
         const prepTimeNumber = Number(prepTime);
         const cookTimeNumber = Number(cookTime);
 
@@ -160,165 +164,206 @@ function AddEditRecipeForm({
             onSubmit={handleRecipeFormSubmit}
             className="add-edit-recipe-form-container"
         >
-            <h3>{existingRecipe ? 'Update The Recipe' : 'Add a New Recipe'}</h3>
-            <div className="image-input">
-                <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChanged}
-                    ref={fileInputRef}
-                    disabled={disabled}
-                    hidden={imageUrl}
-                    required
-                />
-                {uploadProgress > -1 ? (
-                    <>
-                        <label htmlFor="file">Upload Progress:</label>
-                        <progress id="file" value={uploadProgress} max="100">
-                            {uploadProgress}%
-                        </progress>
-                        <span>{uploadProgress}%</span>
-                    </>
-                ) : null}
-                {imageUrl ? (
-                    <div className="image-preview">
-                        <button
-                            type="button"
-                            onClick={handleCancelImageClick}
+            <h2 className="text-center">
+                {existingRecipe ? 'Update The Recipe' : 'Add a New Recipe'}
+            </h2>
+            <div className="top-form-section">
+                <div className="image-input">
+                    Recipe Image
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChanged}
+                        ref={fileInputRef}
+                        disabled={disabled}
+                        hidden={uploadProgress > -1 || imageUrl}
+                    />
+                    {!imageUrl && uploadProgress > -1 ? (
+                        <div>
+                            <label htmlFor="file">Upload Progress:</label>
+                            <progress
+                                id="file"
+                                value={uploadProgress}
+                                max="100"
+                            >
+                                {uploadProgress}%
+                            </progress>
+                            <span>{uploadProgress}%</span>
+                        </div>
+                    ) : null}
+                    {imageUrl ? (
+                        <div className="image-preview">
+                            <img
+                                src={imageUrl}
+                                alt={imageUrl}
+                                className="image"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleCancelImageClick}
+                                disabled={disabled}
+                            >
+                                Cancel Image
+                            </button>
+                        </div>
+                    ) : null}
+                </div>
+                <div className="fields">
+                    <label>
+                        Recipe Name:
+                        <input
+                            required
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            disabled={disabled}
+                        />
+                    </label>
+                    <label>
+                        Category:
+                        <select
+                            required
+                            value={category}
+                            onChange={(e) => setCategory(e.target.value)}
                             disabled={disabled}
                         >
-                            Cancel Image
-                        </button>
-                        <img src={imageUrl} alt={imageUrl} className="image" />
-                    </div>
-                ) : null}
+                            <option value="" disabled></option>
+                            <option value="breadsSandwichesPizza">
+                                Breads, Sandwiches, and Pizza
+                            </option>
+                            <option value="eggsBreakfast">
+                                Eggs & Breakfast
+                            </option>
+                            <option value="dessertsBakedGoods">
+                                Desserts & Baked Goods
+                            </option>
+                            <option value="fishSeafood">Fish & Seafood</option>
+                            <option value="vegetables">Vegetables</option>
+                        </select>
+                    </label>
+                    <label>
+                        Description:
+                        <textarea
+                            required
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            disabled={disabled}
+                        />
+                    </label>
+                    <label>
+                        Serves (persons):
+                        <input
+                            required
+                            type="number"
+                            value={serves}
+                            onChange={(e) => setServes(e.target.value)}
+                            disabled={disabled}
+                        />
+                    </label>
+                    <label>
+                        Prep Time:
+                        <select
+                            required
+                            value={prepTime}
+                            onChange={(e) => setPrepTime(e.target.value)}
+                            disabled={disabled}
+                        >
+                            <option value="" disabled></option>
+                            <option value="5">5 Minutes</option>
+                            <option value="10">10 Minutes</option>
+                            <option value="15">15 Minutes</option>
+                            <option value="30">30 Minutes</option>
+                            <option value="45">45 Minutes</option>
+                            <option value="60">60 Minutes</option>
+                        </select>
+                    </label>
+                    <label>
+                        Cook Time:
+                        <select
+                            required
+                            value={cookTime}
+                            onChange={(e) => setCookTime(e.target.value)}
+                            disabled={disabled}
+                        >
+                            <option value="" disabled></option>
+                            <option value="5">5 Minutes</option>
+                            <option value="10">10 Minutes</option>
+                            <option value="15">15 Minutes</option>
+                            <option value="30">30 Minutes</option>
+                            <option value="45">45 Minutes</option>
+                            <option value="60">60 Minutes</option>
+                        </select>
+                    </label>
+                    <label>
+                        Directions:
+                        <textarea
+                            required
+                            value={directions}
+                            onChange={(e) => setDirections(e.target.value)}
+                            disabled={disabled}
+                        />
+                    </label>
+                    <label>
+                        Publish Date:
+                        <input
+                            type="date"
+                            required
+                            value={publishDate}
+                            onChange={(e) => setPublishDate(e.target.value)}
+                            disabled={disabled}
+                        />
+                    </label>
+                </div>
             </div>
-            <label>
-                Recipe Name:
-                <input
-                    required
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    disabled={disabled}
-                />
-            </label>
-            <label>
-                Category:
-                <select
-                    required
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    disabled={disabled}
-                >
-                    <option value="" disabled></option>
-                    <option value="breadsSandwichesPizza">
-                        Breads, Sandwiches, and Pizza
-                    </option>
-                    <option value="eggsBreakfast">Eggs & Breakfast</option>
-                    <option value="dessertsBakedGoods">
-                        Desserts & Baked Goods
-                    </option>
-                    <option value="fishSeafood">Fish & Seafood</option>
-                    <option value="vegetables">Vegetables</option>
-                </select>
-            </label>
-            <label>
-                Description:
-                <textarea
-                    required
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    disabled={disabled}
-                />
-            </label>
-            <label>
-                Serves (persons):
-                <input
-                    required
-                    type="number"
-                    value={serves}
-                    onChange={(e) => setServes(e.target.value)}
-                    disabled={disabled}
-                />
-            </label>
-            <label>
-                Prep Time:
-                <select
-                    required
-                    value={prepTime}
-                    onChange={(e) => setPrepTime(e.target.value)}
-                    disabled={disabled}
-                >
-                    <option value="" disabled></option>
-                    <option value="5">5 Minutes</option>
-                    <option value="10">10 Minutes</option>
-                    <option value="15">15 Minutes</option>
-                    <option value="30">30 Minutes</option>
-                    <option value="45">45 Minutes</option>
-                    <option value="60">60 Minutes</option>
-                </select>
-            </label>
-            <label>
-                Cook Time:
-                <select
-                    required
-                    value={cookTime}
-                    onChange={(e) => setCookTime(e.target.value)}
-                    disabled={disabled}
-                >
-                    <option value="" disabled></option>
-                    <option value="5">5 Minutes</option>
-                    <option value="10">10 Minutes</option>
-                    <option value="15">15 Minutes</option>
-                    <option value="30">30 Minutes</option>
-                    <option value="45">45 Minutes</option>
-                    <option value="60">60 Minutes</option>
-                </select>
-            </label>
-            <label>
-                Directions:
-                <textarea
-                    required
-                    value={directions}
-                    onChange={(e) => setDirections(e.target.value)}
-                    disabled={disabled}
-                />
-            </label>
-            <label>
-                Publish Date:
-                <input
-                    type="date"
-                    required
-                    value={publishDate}
-                    onChange={(e) => setPublishDate(e.target.value)}
-                    disabled={disabled}
-                />
-            </label>
+
             <div className="ingredients-list">
-                <div>Ingredients:</div>
-                {ingredients && ingredients.length > 0
-                    ? ingredients.map((ingredient) => {
-                          return (
-                              <div key={ingredient.name}>
-                                  <span>{ingredient.amount} </span>
-                                  <span>{ingredient.unit} </span>
-                                  <span>{ingredient.name} </span>
-                                  <button
-                                      type="button"
-                                      disabled={disabled}
-                                      onClick={() =>
-                                          handleDeleteIngredient(
-                                              ingredient.name
-                                          )
-                                      }
-                                  >
-                                      Delete
-                                  </button>
-                              </div>
-                          );
-                      })
-                    : null}
+                <h3 className="text-center">Ingredients</h3>
+                <table className="ingredients-table">
+                    <thead>
+                        <tr>
+                            <th>Ingredient</th>
+                            <th>Amount</th>
+                            <th>Unit</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {ingredients && ingredients.length > 0
+                            ? ingredients.map((ingredient) => {
+                                  return (
+                                      <tr key={ingredient.name}>
+                                          <td className="text-center">
+                                              {ingredient.name}
+                                          </td>
+                                          <td className="text-center">
+                                              {ingredient.amount}
+                                          </td>
+                                          <td className="text-center">
+                                              {ingredient.unit}
+                                          </td>
+                                          <td>
+                                              <button
+                                                  type="button"
+                                                  disabled={disabled}
+                                                  className="center"
+                                                  onClick={() =>
+                                                      handleDeleteIngredient(
+                                                          ingredient.name
+                                                      )
+                                                  }
+                                              >
+                                                  Delete
+                                              </button>
+                                          </td>
+                                      </tr>
+                                  );
+                              })
+                            : null}
+                    </tbody>
+                </table>
+                {ingredients && ingredients.length === 0 ? (
+                    <div className="text-center">No Ingredients Added Yet</div>
+                ) : null}
                 <div className="ingredient-form">
                     <label>
                         Ingredient:
@@ -358,28 +403,37 @@ function AddEditRecipeForm({
                     </button>
                 </div>
             </div>
-
-            <button type="submit" disabled={disabled}>
-                {existingRecipe ? 'Update Recipe' : 'Create Recipe'}
-            </button>
-            {existingRecipe ? (
-                <>
-                    <button
-                        type="button"
-                        onClick={handleCancelClick}
-                        disabled={disabled}
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => handleDeleteRecipe(existingRecipe.id)}
-                        disabled={disabled}
-                    >
-                        Delete
-                    </button>
-                </>
-            ) : null}
+            <div className="action-buttons">
+                <button
+                    type="submit"
+                    className="button action-button"
+                    disabled={disabled}
+                >
+                    {existingRecipe ? 'Update Recipe' : 'Create Recipe'}
+                </button>
+                {existingRecipe ? (
+                    <>
+                        <button
+                            type="button"
+                            onClick={handleCancelClick}
+                            className="button action-button"
+                            disabled={disabled}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() =>
+                                handleDeleteRecipe(existingRecipe.id)
+                            }
+                            className="button action-button"
+                            disabled={disabled}
+                        >
+                            Delete
+                        </button>
+                    </>
+                ) : null}
+            </div>
         </form>
     );
 }
