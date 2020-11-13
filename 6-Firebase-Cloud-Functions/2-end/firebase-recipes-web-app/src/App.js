@@ -105,7 +105,7 @@ function App() {
         orderByDirection: orderByDirection,
         perPage: recipesPerPage,
         cursorId: null,
-        currentPageNumber: currentPageNumber,
+        pageNumber: currentPageNumber,
       });
 
       if (response && response.documents) {
