@@ -5,7 +5,7 @@
 }
 
 html {
-  background: #F3C14F;
+  background: #f3c14f;
 }
 
 .app {
@@ -16,6 +16,7 @@ html {
 
   .title-row {
     display: flex;
+    width: 70rem;
     justify-content: space-between;
     padding: 1rem;
     margin-bottom: 1rem;
@@ -35,9 +36,20 @@ html {
     width: 90%;
 
     .filters {
-      width: 100%;
+      width: 70rem;
       display: flex;
       justify-content: space-between;
+    }
+
+    .recipe-list-box {
+      width: 70rem;
+      background: #039be5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      margin-bottom: 1rem;
     }
 
     .recipe-list {
@@ -45,16 +57,14 @@ html {
       display: flex;
       justify-content: space-evenly;
       flex-wrap: wrap;
-      padding: 1rem 0 0 1rem;
-      margin-bottom: 1rem;
-      background: #039BE5;
+      background: #039be5;
 
       .recipe-card {
         padding: 0.75rem;
         margin-right: 1rem;
         margin-bottom: 1rem;
         width: 14rem;
-        background: #F3C14F;
+        background: #f3c14f;
         border-radius: 0.25rem;
 
         .recipe-image {
@@ -89,8 +99,8 @@ html {
 
       .selected-page {
         background: #fff;
-        color: #039BE5;
-        border: 0.1rem solid #039BE5;
+        color: #039be5;
+        border: 0.1rem solid #039be5;
       }
     }
   }
@@ -220,13 +230,12 @@ html {
       display: flex;
       justify-content: space-between;
       margin-bottom: 0.5rem;
-
     }
   }
 }
 
 .primary-button {
-  background: #039BE5;
+  background: #039be5;
   color: #fff;
   border: 0.1rem solid transparent;
   outline: none;
@@ -235,8 +244,8 @@ html {
 .primary-button:hover {
   opacity: 0.9;
   background: #fff;
-  color: #039BE5;
-  border: 0.1rem solid #039BE5;
+  color: #039be5;
+  border: 0.1rem solid #039be5;
 }
 
 .secondary-button {
@@ -268,14 +277,15 @@ html {
   margin-left: 0.35rem;
   outline: none;
   font-size: 0.9rem;
-  background: #F1F3F4;
+  background: #f1f3f4;
   border: none;
 }
 
 .select:focus {
   background: #fff;
   user-select: none;
-  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3),
+    0 1px 3px 1px rgba(60, 64, 67, 0.15);
   outline: none;
 }
 
@@ -285,7 +295,7 @@ html {
 }
 
 .input-text {
-  background: #F1F3F4;
+  background: #f1f3f4;
   border: none;
   padding: 0.65rem;
   font-size: 0.75rem;
@@ -296,7 +306,8 @@ html {
 .input-text:focus {
   background: #fff;
   user-select: none;
-  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3),
+    0 1px 3px 1px rgba(60, 64, 67, 0.15);
   outline: none;
 }
 
@@ -355,5 +366,151 @@ html {
         flex-direction: column;
       }
     }
+  }
+}
+
+// Created by Zen Dash
+// https://codepen.io/z-/pen/JXVpgp
+
+$black: #111217;
+$brownl: #70392f;
+$brownd: #612e25;
+$yellow: #ffdc01;
+$orange: #fdac01;
+$red: #f73b01;
+$animationtime: 1.5s;
+
+.fire {
+  height: 12rem;
+  width: 12rem;
+  margin-top: 8rem;
+
+  .flames {
+    width: 60%;
+    height: 60%;
+    transform: translateX(32%) translateY(2%) rotate(45deg);
+
+    .flame {
+      position: absolute;
+      right: 0%;
+      bottom: 0%;
+      width: 0%;
+      height: 0%;
+      background-color: $yellow;
+      border-radius: 1vw;
+      &:nth-child(2n + 1) {
+        animation: flameodd $animationtime ease-in infinite;
+      }
+      &:nth-child(2n) {
+        animation: flameeven $animationtime ease-in infinite;
+      }
+      &:nth-child(1) {
+        animation-delay: 0s;
+      }
+      &:nth-child(2) {
+        animation-delay: $animationtime/4;
+      }
+      &:nth-child(3) {
+        animation-delay: $animationtime/4 * 2;
+      }
+      &:nth-child(4) {
+        animation-delay: $animationtime/4 * 3;
+      }
+    }
+  }
+  .logs {
+    bottom: 25%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    height: 15%;
+    &:before,
+    &:after {
+      position: absolute;
+      content: '';
+      top: 50%;
+      left: 50%;
+      transform: rotate(20deg);
+      height: 100%;
+      width: 100%;
+      border-radius: 1vw;
+      background-color: $brownl;
+    }
+    &:before {
+      transform: rotate(-20deg);
+      background-color: $brownd;
+    }
+  }
+}
+
+@keyframes flameodd {
+  0%,
+  100% {
+    width: 0%;
+    height: 0%;
+  }
+  25% {
+    width: 100%;
+    height: 100%;
+  }
+  0% {
+    background-color: $yellow;
+    z-index: 1000000;
+  }
+  40% {
+    background-color: $orange;
+    z-index: 1000000;
+  }
+  100% {
+    background-color: $red;
+    z-index: -10;
+  }
+  0% {
+    right: 0%;
+    bottom: 0%;
+  }
+  25% {
+    right: 1%;
+    bottom: 2%;
+  }
+  100% {
+    right: 150%;
+    bottom: 170%;
+  }
+}
+
+@keyframes flameeven {
+  0%,
+  100% {
+    width: 0%;
+    height: 0%;
+  }
+  25% {
+    width: 100%;
+    height: 100%;
+  }
+  0% {
+    background-color: $yellow;
+    z-index: 1000000;
+  }
+  40% {
+    background-color: $orange;
+    z-index: 1000000;
+  }
+  100% {
+    background-color: $red;
+    z-index: -10;
+  }
+  0% {
+    right: 0%;
+    bottom: 0%;
+  }
+  25% {
+    right: 2%;
+    bottom: 1%;
+  }
+  100% {
+    right: 170%;
+    bottom: 150%;
   }
 }

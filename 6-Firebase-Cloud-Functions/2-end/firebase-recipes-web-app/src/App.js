@@ -10,6 +10,7 @@ const SECONDS_MULTIPLIER = 1000;
 function App() {
   const [user, setUser] = React.useState(null);
   const [disableRecipeForm, setDisableRecipeForm] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
   const [currentRecipe, setCurrentRecipe] = React.useState(null);
   const [categoryFilter, setCategoryFilter] = React.useState('');
   const [servesFilter, setServesFilter] = React.useState('');
@@ -97,6 +98,8 @@ function App() {
       }
     }
 
+    setIsLoading(true);
+
     try {
       const response = await FirebaseFirestoreRestService.readDocuments({
         collection: 'recipes',
@@ -158,6 +161,8 @@ function App() {
       alert(error.message);
       throw error;
     }
+
+    setIsLoading(false);
   }
 
   async function handleAddRecipe(newRecipe) {
@@ -348,36 +353,56 @@ function App() {
             </select>
           </label>
         </div>
-        {recipes && recipes.length > 0 ? (
+        {(recipes && recipes.length > 0) || isLoading ? (
           <div className="center">
-            <div className="recipe-list">
-              {recipes.map((recipe) => {
-                return (
-                  <div className="recipe-card" key={recipe.id}>
-                    <div>Name: {recipe.name}</div>
-                    <div className="recipe-image-box">
-                      <img
-                        src={recipe.imageUrl}
-                        alt={recipe.name}
-                        className="recipe-image"
-                      />
-                    </div>
-                    <div>Category: {lookupCategoryLabel(recipe.category)}</div>
-                    <div>Publish Date: {formatDate(recipe.publishDate)}</div>
-                    <div>Description: {recipe.description}</div>
-                    <div>Serves: {recipe.serves}</div>
-                    <div>Total Time: {recipe.totalTime} minutes</div>
-                    {user ? (
-                      <button
-                        onClick={() => handleRecipeEditClick(recipe.id)}
-                        className="primary-button edit-button"
-                      >
-                        EDIT
-                      </button>
-                    ) : null}
+            <div className="recipe-list-box">
+              {isLoading ? (
+                <div class="fire">
+                  <div class="flames">
+                    <div class="flame"></div>
+                    <div class="flame"></div>
+                    <div class="flame"></div>
+                    <div class="flame"></div>
                   </div>
-                );
-              })}
+                  <div class="logs"></div>
+                </div>
+              ) : null}
+
+              <div className="recipe-list">
+                {recipes.map((recipe) => {
+                  return (
+                    <div className="recipe-card" key={recipe.id}>
+                      <div>
+                        <div>Name: {recipe.name}</div>
+                        <div className="recipe-image-box">
+                          <img
+                            src={recipe.imageUrl}
+                            alt={recipe.name}
+                            className="recipe-image"
+                          />
+                        </div>
+                        <div>
+                          Category: {lookupCategoryLabel(recipe.category)}
+                        </div>
+                        <div>
+                          Publish Date: {formatDate(recipe.publishDate)}
+                        </div>
+                        <div>Description: {recipe.description}</div>
+                        <div>Serves: {recipe.serves}</div>
+                        <div>Total Time: {recipe.totalTime} minutes</div>
+                      </div>
+                      {user ? (
+                        <button
+                          onClick={() => handleRecipeEditClick(recipe.id)}
+                          className="primary-button edit-button"
+                        >
+                          EDIT
+                        </button>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
             <label className="input-label">
               Recipes Per Page:
