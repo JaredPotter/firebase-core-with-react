@@ -357,14 +357,14 @@ function App() {
           <div className="center">
             <div className="recipe-list-box">
               {isLoading ? (
-                <div class="fire">
-                  <div class="flames">
-                    <div class="flame"></div>
-                    <div class="flame"></div>
-                    <div class="flame"></div>
-                    <div class="flame"></div>
+                <div className="fire">
+                  <div className="flames">
+                    <div className="flame"></div>
+                    <div className="flame"></div>
+                    <div className="flame"></div>
+                    <div className="flame"></div>
                   </div>
-                  <div class="logs"></div>
+                  <div className="logs"></div>
                 </div>
               ) : null}
 
