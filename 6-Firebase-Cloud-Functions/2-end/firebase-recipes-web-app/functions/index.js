@@ -107,7 +107,6 @@ app.get('/recipes', async (request, response) => {
   const authorizationHeader = request.headers['authorization'];
   const queryObject = request.query;
   const category = queryObject['category'] ? queryObject['category'] : '';
-  const serves = queryObject['serves'] ? queryObject['serves'] : '';
   const orderByField = queryObject['orderByField']
     ? queryObject['orderByField']
     : '';
@@ -131,10 +130,6 @@ app.get('/recipes', async (request, response) => {
 
   if (category) {
     collectionRef = collectionRef.where('category', '==', category);
-  }
-
-  if (serves) {
-    collectionRef = collectionRef.where('serves', '==', Number(serves));
   }
 
   if (orderByField) {
@@ -358,26 +353,6 @@ const validateRecipePostPut = (newRecipe) => {
     missingFields += 'category, ';
   }
 
-  if (!newRecipe.description) {
-    missingFields += 'description, ';
-  }
-
-  if (!newRecipe.serves) {
-    missingFields += 'serves, ';
-  }
-
-  if (!newRecipe.prepTime) {
-    missingFields += 'prepTime, ';
-  }
-
-  if (!newRecipe.cookTime) {
-    missingFields += 'cookTime, ';
-  }
-
-  if (!newRecipe.totalTime) {
-    missingFields += 'totalTime, ';
-  }
-
   if (!newRecipe.directions) {
     missingFields += 'directions, ';
   }
@@ -406,11 +381,6 @@ const sanitizeRecipePostPut = (newRecipe) => {
 
   recipe.name = newRecipe.name;
   recipe.category = newRecipe.category;
-  recipe.description = newRecipe.description;
-  recipe.serves = newRecipe.serves;
-  recipe.prepTime = newRecipe.prepTime;
-  recipe.cookTime = newRecipe.cookTime;
-  recipe.totalTime = newRecipe.totalTime;
   recipe.directions = newRecipe.directions;
   recipe.publishDate = new Date(newRecipe.publishDate * 1000);
   recipe.isPublished = newRecipe.isPublished;
@@ -429,26 +399,6 @@ const sanitizeRecipePatch = (newRecipe) => {
 
   if (newRecipe.category) {
     recipe.category = newRecipe.category;
-  }
-
-  if (newRecipe.description) {
-    recipe.description = newRecipe.description;
-  }
-
-  if (newRecipe.serves) {
-    recipe.serves = newRecipe.serves;
-  }
-
-  if (newRecipe.prepTime) {
-    recipe.prepTime = newRecipe.prepTime;
-  }
-
-  if (newRecipe.cookTime) {
-    recipe.cookTime = newRecipe.cookTime;
-  }
-
-  if (newRecipe.totalTime) {
-    recipe.totalTime = newRecipe.totalTime;
   }
 
   if (newRecipe.directions) {
@@ -510,13 +460,26 @@ exports.onDeleteRecipe = functions.firestore
 
     const docRef = firestore
       .collection('collectionDocumentCount')
-      .doc('recipes');
+      .doc('allRecipeDocumentsCount');
     const doc = await docRef.get();
 
     if (doc.exists) {
       docRef.update({ count: admin.firestore.FieldValue.increment(-1) });
     } else {
       docRef.set({ count: 0 });
+    }
+
+    if (recipe.isPublished) {
+      const docRef = firestore
+        .collection('collectionDocumentCount')
+        .doc('publishedRecipeDocumentsCount');
+      const doc = await docRef.get();
+
+      if (doc.exists) {
+        docRef.update({ count: admin.firestore.FieldValue.increment(-1) });
+      } else {
+        docRef.set({ count: 0 });
+      }
     }
   });
 

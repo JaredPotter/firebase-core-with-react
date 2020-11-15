@@ -1,32 +1,45 @@
-import './App.css';
-import React from 'react';
+import './App.scss';
+import { useState, useEffect } from 'react';
 import FirebaseAuthService from './FirebaseAuthService';
 import FirebaseFirestoreService from './FirebaseFirestoreService';
+import LoginForm from './components/LoginForm';
 import AddEditRecipeForm from './components/AddEditRecipeForm';
 import FirebaseStorageService from './FirebaseStorageService';
 
 function App() {
-  const [username, setUsername] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [user, setUser] = React.useState(null);
-  const [disableRecipeForm, setDisableRecipeForm] = React.useState(false);
-  const [currentRecipe, setCurrentRecipe] = React.useState(null);
-  const [categoryFilter, setCategoryFilter] = React.useState('');
-  const [servesFilter, setServesFilter] = React.useState('');
-  const [orderBy, setOrderBy] = React.useState('publishDateDesc');
-  const [recipesPerPage, setRecipesPerPage] = React.useState(3);
-  const [recipes, setRecipes] = React.useState(() => {
-    fetchRecipes();
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentRecipe, setCurrentRecipe] = useState(null);
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [orderBy, setOrderBy] = useState('publishDateDesc');
+  const [recipesPerPage, setRecipesPerPage] = useState(3);
+  const [recipes, setRecipes] = useState([]);
 
-    return [];
-  });
-  React.useEffect(() => {
-    fetchRecipes();
-  }, [categoryFilter, servesFilter, user, orderBy, recipesPerPage]);
+  useEffect(() => {
+    setIsLoading(true);
+
+    fetchRecipes(categoryFilter, user, orderBy, recipesPerPage)
+      .then((fetchedRecipes) => {
+        setRecipes(fetchedRecipes);
+      })
+      .catch((error) => {
+        alert(error.message);
+        throw error;
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, [categoryFilter, user, orderBy, recipesPerPage]);
 
   FirebaseAuthService.subscribeToAuthChanges(setUser);
 
-  async function fetchRecipes(cursorId = '') {
+  async function fetchRecipes(
+    categoryFilter,
+    user,
+    orderBy,
+    recipesPerPage,
+    cursorId
+  ) {
     const queries = [];
 
     if (categoryFilter) {
@@ -35,22 +48,6 @@ function App() {
         condition: '==',
         value: categoryFilter,
       });
-    }
-
-    if (servesFilter) {
-      if (servesFilter === '7+') {
-        queries.push({
-          field: 'serves',
-          condition: '>=',
-          value: 7,
-        });
-      } else {
-        queries.push({
-          field: 'serves',
-          condition: '==',
-          value: Number(servesFilter),
-        });
-      }
     }
 
     if (!user) {
@@ -74,18 +71,12 @@ function App() {
           orderByField = 'publishDate';
           orderByDirection = 'desc';
           break;
-        case 'totalTimeDesc':
-          orderByField = 'totalTime';
-          orderByDirection = 'desc';
-          break;
-        case 'totalTimeAsc':
-          orderByField = 'totalTime';
-          orderByDirection = 'asc';
-          break;
         default:
           break;
       }
     }
+
+    let fetchedRecipes = [];
 
     try {
       const parameters = {
@@ -97,8 +88,7 @@ function App() {
         cursorId: cursorId,
       };
       const response = await FirebaseFirestoreService.readDocuments(parameters);
-
-      const fetchedRecipes = response.docs.map((recipe) => {
+      fetchedRecipes = response.docs.map((recipe) => {
         const id = recipe.id;
 
         const data = recipe.data();
@@ -107,78 +97,23 @@ function App() {
 
         return { ...data, id };
       });
-
-      let newRecipes = [];
-
-      if (cursorId) {
-        newRecipes = [...recipes, ...fetchedRecipes];
-      } else {
-        newRecipes = [...fetchedRecipes];
-      }
-
-      setRecipes(newRecipes);
     } catch (error) {
       alert(error.message);
-      throw error;
-    }
-  }
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-
-    try {
-      const authResponse = await FirebaseAuthService.loginUser(
-        username,
-        password
-      );
-
-      setUser(authResponse.user);
-    } catch (error) {
-      alert(error.message);
-      throw error;
     }
 
-    setUsername('');
-    setPassword('');
-  }
-
-  function handleLogout() {
-    FirebaseAuthService.logoutUser();
-    setUser(null);
-  }
-
-  function handleSendPasswordResetEmail() {
-    FirebaseAuthService.sendResetPassword(username);
-    alert('Reset Email Sent');
-  }
-
-  async function handleLoginWithGoogle() {
-    try {
-      const loginResult = await FirebaseAuthService.loginWithGoogle();
-
-      const user = loginResult.user;
-
-      setUser(user);
-    } catch (error) {
-      alert(error.message);
-      throw error;
-    }
+    return fetchedRecipes;
   }
 
   async function handleAddRecipe(newRecipe) {
     try {
-      setDisableRecipeForm(true);
-
       const response = await FirebaseFirestoreService.createDocument(
         'recipes',
         newRecipe
       );
 
-      setDisableRecipeForm(false);
+      handleFetchRecipes();
 
-      fetchRecipes();
-
-      alert(`successfully create a recipe with an ID = ${response.id}`);
+      alert(`successfully created a recipe with an ID = ${response.id}`);
     } catch (error) {
       alert(error.message);
 
@@ -188,17 +123,13 @@ function App() {
 
   async function handleUpdateRecipe(updatedRecipe) {
     try {
-      setDisableRecipeForm(true);
-
       await FirebaseFirestoreService.updateDocument(
         'recipes',
         updatedRecipe.id,
         updatedRecipe
       );
 
-      setDisableRecipeForm(false);
-
-      fetchRecipes();
+      handleFetchRecipes();
 
       alert(`successfully updated recipe with an ID = ${updatedRecipe.id}`);
 
@@ -232,8 +163,7 @@ function App() {
           }
         }
 
-        fetchRecipes();
-
+        handleFetchRecipes();
         setCurrentRecipe(null);
 
         alert(`successfully deleted recipe with an ID = ${recipeId}`);
@@ -262,15 +192,44 @@ function App() {
 
   function handleRecipesPerPageChange(e) {
     const recipesPerPage = e.target.value;
+
     setRecipes([]);
     setRecipesPerPage(recipesPerPage);
   }
 
-  function handleLoadMoreRecipesClick() {
+  async function handleLoadMoreRecipesClick() {
     const lastRecipe = recipes[recipes.length - 1];
     const cursorId = lastRecipe.id;
 
-    fetchRecipes(cursorId);
+    try {
+      const fetchedRecipes = await fetchRecipes(
+        categoryFilter,
+        user,
+        orderBy,
+        recipesPerPage,
+        cursorId
+      );
+      const newRecipes = [...recipes, ...fetchedRecipes];
+
+      setRecipes(newRecipes);
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
+  async function handleFetchRecipes() {
+    try {
+      const fetchedRecipes = await fetchRecipes(
+        categoryFilter,
+        user,
+        orderBy,
+        recipesPerPage
+      );
+
+      setRecipes(fetchedRecipes);
+    } catch (error) {
+      alert(error.message);
+    }
   }
 
   function lookupCategoryLabel(categoryKey) {
@@ -302,145 +261,136 @@ function App() {
   }
 
   return (
-    <div className="App">
-      {user ? (
-        <>
-          <h3>Welcome, {user.email}</h3>
-          <button onClick={handleLogout}>Logout</button>
-        </>
-      ) : (
-        <>
-          <form onSubmit={handleSubmit}>
-            <label>
-              Username (email):
-              <input
-                type="email"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </label>
-            <label>
-              Password:
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </label>
-            <button type="submit">Login</button>
-          </form>
-          <button onClick={handleSendPasswordResetEmail}>
-            Send Password Reset Email
-          </button>
-          <button onClick={handleLoginWithGoogle}>Login with Google</button>
-        </>
-      )}
-
-      <h1>Firebase Recipes</h1>
-      <label>
-        Category:
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-        >
-          <option value=""></option>
-          <option value="breadsSandwichesPizza">
-            Breads, Sandwiches, and Pizza
-          </option>
-          <option value="eggsBreakfast">Eggs & Breakfast</option>
-          <option value="dessertsBakedGoods">Desserts & Baked Goods</option>
-          <option value="fishSeafood">Fish & Seafood</option>
-          <option value="vegetables">Vegetables</option>
-        </select>
-      </label>
-      <label>
-        Serves:
-        <select
-          value={servesFilter}
-          onChange={(e) => setServesFilter(e.target.value)}
-        >
-          <option value=""></option>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6">6</option>
-          <option value="7+">7+</option>
-        </select>
-      </label>
-      <label>
-        Order By:
-        <select value={orderBy} onChange={(e) => setOrderBy(e.target.value)}>
-          <option value=""></option>
-          <option value="publishDateDesc">
-            Publish Date (newest - oldest)
-          </option>
-          <option value="publishDateAsc">Publish Date (oldest - newest)</option>
-          <option value="totalTimeDesc">
-            Total Time Minutes (most - least)
-          </option>
-          <option value="totalTimeAsc">
-            Total Time Minutes (least - most)
-          </option>
-        </select>
-      </label>
-      {recipes && recipes.length > 0 ? (
-        <div className="recipe-list-container">
-          <div className="recipe-list">
-            {recipes.map((recipe) => {
-              return (
-                <div className="recipe-card" key={recipe.id}>
-                  <div>ID: {recipe.id}</div>
-                  <div>Name: {recipe.name}</div>
-                  <div className="recipe-image">
-                    <img src={recipe.imageUrl} alt={recipe.name} />
-                  </div>
-                  <div>Category: {lookupCategoryLabel(recipe.category)}</div>
-                  <div>Publish Date: {formatDate(recipe.publishDate)}</div>
-                  <div>Description: {recipe.description}</div>
-                  <div>Serves: {recipe.serves}</div>
-                  <div>Total Time: {recipe.totalTime} minutes</div>
-                  {user ? (
-                    <button onClick={() => handleRecipeEditClick(recipe.id)}>
-                      EDIT
-                    </button>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
-          <label>
-            Recipes Per Page:
+    <div className="app">
+      <div className="title-row">
+        <h1 className="title">Firebase Recipes</h1>
+        <LoginForm existingUser={user} />
+      </div>
+      <div className="main">
+        <div className="row apart filters">
+          <label className="input-label">
+            Category:
             <select
-              value={recipesPerPage}
-              onChange={handleRecipesPerPageChange}
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="select"
             >
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
+              <option value=""></option>
+              <option value="breadsSandwichesPizza">
+                Breads, Sandwiches, and Pizza
+              </option>
+              <option value="eggsBreakfast">Eggs & Breakfast</option>
+              <option value="dessertsBakedGoods">Desserts & Baked Goods</option>
+              <option value="fishSeafood">Fish & Seafood</option>
+              <option value="vegetables">Vegetables</option>
             </select>
           </label>
-          <button onClick={handleLoadMoreRecipesClick}>
-            LOAD MORE RECIPES
-          </button>
+          <label className="input-label">
+            Order By:
+            <select
+              value={orderBy}
+              onChange={(e) => setOrderBy(e.target.value)}
+              className="select"
+            >
+              <option value=""></option>
+              <option value="publishDateDesc">
+                Publish Date (newest - oldest)
+              </option>
+              <option value="publishDateAsc">
+                Publish Date (oldest - newest)
+              </option>
+            </select>
+          </label>
         </div>
-      ) : (
-        <h5>No Recipes Found!</h5>
-      )}
-      {user ? (
-        <AddEditRecipeForm
-          handleAddRecipe={handleAddRecipe}
-          handleUpdateRecipe={handleUpdateRecipe}
-          handleDeleteRecipe={handleDeleteRecipe}
-          existingRecipe={currentRecipe}
-          handleCancelClick={handleCancelClick}
-          disabled={disableRecipeForm}
-        />
-      ) : null}
+        <div className="center">
+          <div className="recipe-list-box">
+            {isLoading ? (
+              <div className="fire">
+                <div className="flames">
+                  <div className="flame"></div>
+                  <div className="flame"></div>
+                  <div className="flame"></div>
+                  <div className="flame"></div>
+                </div>
+                <div className="logs"></div>
+              </div>
+            ) : null}
+            {!isLoading && recipes && recipes.length === 0 ? (
+              <h5 className="no-recipes">No Recipes Found</h5>
+            ) : null}
+            {isLoading || (recipes && recipes.length > 0) ? (
+              <>
+                <div className="recipe-list">
+                  {recipes && recipes.length > 0
+                    ? recipes.map((recipe) => {
+                        return (
+                          <div className="recipe-card" key={recipe.id}>
+                            <div>
+                              <div>Name: {recipe.name}</div>
+                              <div className="recipe-image-box">
+                                <img
+                                  src={recipe.imageUrl}
+                                  alt={recipe.name}
+                                  className="recipe-image"
+                                />
+                              </div>
+                              <div>
+                                Category: {lookupCategoryLabel(recipe.category)}
+                              </div>
+                              <div>
+                                Publish Date: {formatDate(recipe.publishDate)}
+                              </div>
+                            </div>
+                            {user ? (
+                              <button
+                                onClick={() => handleRecipeEditClick(recipe.id)}
+                                className="primary-button edit-button"
+                              >
+                                EDIT
+                              </button>
+                            ) : null}
+                          </div>
+                        );
+                      })
+                    : null}
+                </div>
+              </>
+            ) : null}
+          </div>
+          {isLoading || (recipes && recipes.length > 0) ? (
+            <>
+              <label className="input-label">
+                Recipes Per Page:
+                <select
+                  value={recipesPerPage}
+                  onChange={handleRecipesPerPageChange}
+                  className="select"
+                >
+                  <option value="3">3</option>
+                  <option value="6">6</option>
+                </select>
+              </label>
+              <div className="pagination">
+                <button
+                  onClick={handleLoadMoreRecipesClick}
+                  className="primary-button"
+                >
+                  LOAD MORE RECIPES
+                </button>
+              </div>
+            </>
+          ) : null}
+        </div>
+        {user ? (
+          <AddEditRecipeForm
+            handleAddRecipe={handleAddRecipe}
+            handleUpdateRecipe={handleUpdateRecipe}
+            handleDeleteRecipe={handleDeleteRecipe}
+            existingRecipe={currentRecipe}
+            handleCancelClick={handleCancelClick}
+          />
+        ) : null}
+      </div>
     </div>
   );
 }
