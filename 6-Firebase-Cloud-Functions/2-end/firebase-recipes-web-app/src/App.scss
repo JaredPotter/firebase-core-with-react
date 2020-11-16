@@ -50,6 +50,12 @@ html {
       justify-content: center;
       padding: 1rem;
       margin-bottom: 1rem;
+      border-radius: 0.25rem;
+      box-shadow: 0.1rem 0.1rem 1rem 0.1rem #039be5;
+
+      .no-recipes {
+        color: #fff;
+      }
     }
 
     .recipe-list {
@@ -57,15 +63,18 @@ html {
       display: flex;
       justify-content: space-evenly;
       flex-wrap: wrap;
-      background: #039be5;
 
       .recipe-card {
         padding: 0.75rem;
         margin-right: 1rem;
         margin-bottom: 1rem;
-        width: 14rem;
+        width: 17rem;
         background: #f3c14f;
         border-radius: 0.25rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 0.2rem 0.2rem 0.15rem 0.1rem #f3c14f;
 
         .recipe-image {
           display: flex;
@@ -91,6 +100,8 @@ html {
 
     .pagination {
       width: 15rem;
+      text-align: center;
+      margin-bottom: 3rem;
 
       .page-button {
         width: 2rem;
@@ -170,10 +181,8 @@ html {
 
       .ingredient-delete-box {
         border: 0.1rem solid #000;
-        border-collapse: collapse;
         display: flex;
         justify-content: center;
-        border: 0;
       }
     }
 
@@ -189,12 +198,7 @@ html {
       .ingredient-label {
         display: flex;
         flex-direction: column;
-        width: 23%;
-
-        .ingredient-input {
-          margin-left: 0;
-          padding-left: 0;
-        }
+        width: 30%;
       }
     }
   }
