@@ -210,6 +210,7 @@ function App() {
 
         handleFetchRecipes();
         setCurrentRecipe(null);
+        window.scrollTo(0, 0);
 
         alert(`successfully deleted recipe with an ID = ${recipeId}`);
       } catch (error) {
@@ -273,23 +274,23 @@ function App() {
   }
 
   function formatDate(date) {
-    let dd = date.getUTCDate();
-    let mm = date.getUTCMonth() + 1;
-    const yyyy = date.getFullYear();
+    let day = date.getUTCDate();
+    let month = date.getUTCMonth() + 1;
+    const year = date.getFullYear();
 
-    if (dd < 10) {
-      dd = '0' + dd;
+    if (day < 10) {
+      day = '0' + day;
     }
 
-    if (mm < 10) {
-      mm = '0' + mm;
+    if (month < 10) {
+      month = '0' + month;
     }
 
-    return `${mm}-${dd}-${yyyy}`;
+    return `${month}-${day}-${year}`;
   }
 
   return (
-    <div className="app">
+    <div className="App">
       <div className="title-row">
         <h1 className="title">Firebase Recipes</h1>
         <LoginForm existingUser={user} />
@@ -354,7 +355,10 @@ function App() {
                         return (
                           <div className="recipe-card" key={recipe.id}>
                             <div>
-                              <div>Name: {recipe.name}</div>
+                              {recipe.isPublished === false ? (
+                                <div className="unpublished">UNPUBLISHED</div>
+                              ) : null}
+                              <div className="recipe-name">{recipe.name}</div>
                               <div className="recipe-image-box">
                                 <img
                                   src={recipe.imageUrl}
@@ -362,10 +366,10 @@ function App() {
                                   className="recipe-image"
                                 />
                               </div>
-                              <div>
+                              <div className="recipe-field">
                                 Category: {lookupCategoryLabel(recipe.category)}
                               </div>
-                              <div>
+                              <div className="recipe-field">
                                 Publish Date: {formatDate(recipe.publishDate)}
                               </div>
                             </div>
