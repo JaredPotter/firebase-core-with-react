@@ -1,25 +1,73 @@
-require('dotenv').config();
-
 const recipesApiApp = require('./recipes-api');
-const firebaseAdmin = require('./FirebaseConfig');
-const functions = firebaseAdmin.functions;
-const firestore = firebaseAdmin.firestore;
-const storageBucket = firebaseAdmin.storageBucket;
+const firebaseConfig = require('./FirebaseConfig');
+const functions = firebaseConfig.functions;
+const firestore = firebaseConfig.firestore;
+const storageBucket = firebaseConfig.storageBucket;
+const admin = firebaseConfig.admin;
 
 exports.api = functions.https.onRequest(recipesApiApp);
 
 exports.onCreateRecipe = functions.firestore
   .document('recipes/{recipeId}')
   .onCreate(async (snap, context) => {
-    const docRef = firestore
-      .collection('collectionDocumentCount')
-      .doc('allRecipeDocumentsCount');
-    const doc = await docRef.get();
+    const countDocRef = firestore.collection('recipeCounts').doc('all');
+    const countDoc = await countDocRef.get();
 
-    if (doc.exists) {
-      docRef.update({ count: firestore.FieldValue.increment(1) });
+    if (countDoc.exists) {
+      countDocRef.update({ count: admin.firestore.FieldValue.increment(1) });
     } else {
-      docRef.set({ count: 1 });
+      countDocRef.set({ count: 1 });
+    }
+
+    const recipe = snap.data();
+
+    if (recipe.isPublished) {
+      const countPublishDocRef = firestore
+        .collection('recipeCounts')
+        .doc('published');
+      const countPublishDoc = await countPublishDocRef.get();
+
+      if (countPublishDoc.exists) {
+        countPublishDocRef.update({
+          count: admin.firestore.FieldValue.increment(1),
+        });
+      } else {
+        countPublishDocRef.set({ count: 1 });
+      }
+    }
+  });
+
+exports.onUpdateRecipe = functions.firestore
+  .document('recipes/{recipeId}')
+  .onUpdate(async (change, context) => {
+    const oldRecipe = change.before.data();
+    const newRecipe = change.after.data();
+
+    let publishCount = 0;
+
+    if (!oldRecipe.isPublished && newRecipe.isPublished) {
+      publishCount += 1;
+    } else if (oldRecipe.isPublished && !newRecipe.isPublished) {
+      publishCount += -1;
+    }
+
+    if (publishCount !== 0) {
+      const publishedCountDocRef = firestore
+        .collection('recipeCounts')
+        .doc('published');
+      const publishedCountDoc = await publishedCountDocRef.get();
+
+      if (publishedCountDoc.exists) {
+        publishedCountDocRef.update({
+          count: admin.firestore.FieldValue.increment(publishCount),
+        });
+      } else {
+        if (publishCount > 0) {
+          publishedCountDocRef.set({ count: publishCount });
+        } else {
+          publishedCountDocRef.set({ count: 0 });
+        }
+      }
     }
   });
 
@@ -46,31 +94,29 @@ exports.onDeleteRecipe = functions.firestore
       }
     }
 
-    const docRef = firestore
-      .collection('collectionDocumentCount')
-      .doc('allRecipeDocumentsCount');
+    const docRef = firestore.collection('recipeCounts').doc('all');
     const doc = await docRef.get();
 
     if (doc.exists) {
       docRef.update({
-        count: firestore.FieldValue.increment(-1),
+        count: admin.firestore.FieldValue.increment(-1),
       });
     } else {
       docRef.set({ count: 0 });
     }
 
     if (recipe.isPublished) {
-      const docRef = firestore
-        .collection('collectionDocumentCount')
-        .doc('publishedRecipeDocumentsCount');
-      const doc = await docRef.get();
+      const publishedDocRef = firestore
+        .collection('recipeCounts')
+        .doc('published');
+      const publishedDoc = await publishedDocRef.get();
 
-      if (doc.exists) {
-        docRef.update({
-          count: firestore.FieldValue.increment(-1),
+      if (publishedDoc.exists) {
+        publishedDocRef.update({
+          count: admin.firestore.FieldValue.increment(-1),
         });
       } else {
-        docRef.set({ count: 0 });
+        publishedDocRef.set({ count: 0 });
       }
     }
   });
@@ -105,19 +151,6 @@ exports.dailyCheckRecipePublishDate = functions
             merge: true,
           }
         );
-
-        const publishedRecipeDocumentsCountRef = firestore
-          .collection('collectionDocumentCount')
-          .doc('publishedRecipeDocumentsCount');
-        const publishedRecipeDocumentsCountDoc = await publishedRecipeDocumentsCountRef.get();
-
-        if (publishedRecipeDocumentsCountDoc.exists) {
-          publishedRecipeDocumentsCountRef.update({
-            count: firestore.FieldValue.increment(1),
-          });
-        } else {
-          publishedRecipeDocumentsCountRef.set({ count: 1 });
-        }
       }
     });
   });

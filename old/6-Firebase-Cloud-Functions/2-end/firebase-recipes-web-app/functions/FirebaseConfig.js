@@ -47,4 +47,4 @@ firestore.settings(settings);
 const storageBucket = admin.storage().bucket(FIREBASE_STORAGE_BUCKET);
 const auth = admin.auth();
 
-module.exports = { functions, auth, firestore, storageBucket };
+module.exports = { functions, auth, firestore, storageBucket, admin };

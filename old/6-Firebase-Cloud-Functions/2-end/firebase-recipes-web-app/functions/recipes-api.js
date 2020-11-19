@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 require('dotenv').config();
 
-const firebaseAdmin = require('./FirebaseConfig');
+const firebaseConfig = require('./FirebaseConfig');
 const utilities = require('./utilities');
 
 const FIRESTORE_RECIPE_COLLECTION = process.env.FIRESTORE_RECIPE_COLLECTION;
@@ -16,8 +16,8 @@ if (!FIRESTORE_RECIPE_COLLECTION) {
   return;
 }
 
-const firebaseAuth = firebaseAdmin.auth;
-const firestore = firebaseAdmin.firestore;
+const firebaseAuth = firebaseConfig.auth;
+const firestore = firebaseConfig.firestore;
 
 const app = express();
 
@@ -122,20 +122,23 @@ app.get('/recipes', async (request, response) => {
     }
   }
 
-  let collectionDocumentCount = 0;
+  let recipeCount = 0;
+  let countDocRef;
 
   if (isAuth) {
-    const docRef = firestore
-      .collection('collectionDocumentCount')
-      .doc('allRecipeDocumentsCount');
-    const doc = await docRef.get();
-    collectionDocumentCount = doc.data().count;
+    countDocRef = firestore.collection('recipeCounts').doc('all');
   } else {
-    const docRef = firestore
-      .collection('collectionDocumentCount')
-      .doc('publishedRecipeDocumentsCount');
-    const doc = await docRef.get();
-    collectionDocumentCount = doc.data().count;
+    countDocRef = firestore.collection('recipeCounts').doc('published');
+  }
+
+  const countDoc = await countDocRef.get();
+
+  if (countDoc.exists) {
+    const countDocData = countDoc.data();
+
+    if (countDocData) {
+      recipeCount = countDocData.count;
+    }
   }
 
   try {
@@ -148,7 +151,7 @@ app.get('/recipes', async (request, response) => {
       return { ...data, id };
     });
     const payload = {
-      collectionDocumentCount,
+      recipeCount,
       documents: fetchedRecipes,
     };
 
