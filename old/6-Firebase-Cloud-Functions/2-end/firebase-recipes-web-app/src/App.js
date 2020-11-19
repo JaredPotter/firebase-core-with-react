@@ -34,7 +34,7 @@ function App() {
         setRecipes(fetchedRecipes);
       })
       .catch((error) => {
-        alert(error.message);
+        console.error(error);
         throw error;
       })
       .finally(() => {
@@ -103,7 +103,7 @@ function App() {
 
       if (response && response.documents) {
         const totalNumberOfPages = Math.ceil(
-          response.collectionDocumentCount / recipesPerPage
+          response.recipeCount / recipesPerPage
         );
 
         setTotalNumberOfPages(totalNumberOfPages);
@@ -148,7 +148,7 @@ function App() {
         throw { message: 'Failed to load recipes!' };
       }
     } catch (error) {
-      alert(error.message);
+      console.error(error);
       throw error;
     }
 
@@ -347,7 +347,7 @@ function App() {
             {!isLoading && recipes && recipes.length === 0 ? (
               <h5 className="no-recipes">No Recipes Found</h5>
             ) : null}
-            {isLoading || (recipes && recipes.length > 0) ? (
+            {!isLoading && recipes && recipes.length > 0 ? (
               <>
                 <div className="recipe-list">
                   {recipes && recipes.length > 0

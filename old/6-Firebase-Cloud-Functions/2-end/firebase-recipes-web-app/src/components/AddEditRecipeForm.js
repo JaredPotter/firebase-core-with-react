@@ -104,6 +104,15 @@ function AddEditRecipeForm({
     } else {
       handleAddRecipe(newRecipe);
     }
+
+    setName('');
+    setCategory('');
+    setPublishDate('');
+    setDirections('');
+    setIngredients([]);
+    setImageUrl('');
+    setUploadProgress(-1);
+    fileInputRef.current.value = null;
   }
 
   function handleAddIngredient(e) {
@@ -208,7 +217,7 @@ function AddEditRecipeForm({
               required
               value={directions}
               onChange={(e) => setDirections(e.target.value)}
-              className="input-text"
+              className="input-text directions"
             />
           </label>
           <label className="recipe-label input-label">

@@ -109,6 +109,7 @@ html {
           .recipe-image {
             object-fit: cover;
             width: 14rem;
+            height: 14rem;
           }
         }
 
@@ -180,6 +181,12 @@ html {
         display: flex;
         justify-content: space-between;
         margin-bottom: 0.5rem;
+
+        .directions {
+          width: 12.3rem;
+          height: 8rem;
+          margin-left: 0.35rem;
+        }
       }
     }
   }
