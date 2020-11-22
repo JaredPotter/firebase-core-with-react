@@ -104,9 +104,24 @@ function AddEditRecipeForm({
     } else {
       handleAddRecipe(newRecipe);
     }
+
+    setName('');
+    setCategory('');
+    setPublishDate('');
+    setDirections('');
+    setIngredients([]);
+    setImageUrl('');
+    setUploadProgress(-1);
+    fileInputRef.current.value = null;
   }
 
-  function handleAddIngredientClick() {
+  function handleAddIngredient(e) {
+    if (e.key && e.key !== 'Enter') {
+      return;
+    }
+
+    e.preventDefault();
+
     if (!ingredientName) {
       alert('Missing ingredient field. Please double check.');
       return;
@@ -186,6 +201,7 @@ function AddEditRecipeForm({
               onChange={(e) => setCategory(e.target.value)}
               className="select"
             >
+              <option></option>
               <option value="breadsSandwichesPizza">
                 Breads, Sandwiches, and Pizza
               </option>
@@ -201,7 +217,7 @@ function AddEditRecipeForm({
               required
               value={directions}
               onChange={(e) => setDirections(e.target.value)}
-              className="input-text"
+              className="input-text directions"
             />
           </label>
           <label className="recipe-label input-label">
@@ -259,14 +275,15 @@ function AddEditRecipeForm({
               type="text"
               value={ingredientName}
               onChange={(e) => setIngredientName(e.target.value)}
+              onKeyPress={handleAddIngredient}
               className="input-text"
               placeholder="ex. 1 cup of sugar"
             />
           </label>
           <button
             type="button"
-            onClick={handleAddIngredientClick}
-            className="primary-button"
+            onClick={handleAddIngredient}
+            className="primary-button add-ingredient-button"
           >
             Add Ingredient
           </button>

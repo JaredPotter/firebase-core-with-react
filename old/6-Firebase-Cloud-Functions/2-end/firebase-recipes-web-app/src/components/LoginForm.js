@@ -104,13 +104,13 @@ function LoginForm({ existingUser }) {
               >
                 Reset Email
               </button>
-              <button
+              {/* <button
                 type="button"
                 className="primary-button"
                 onClick={handleLoginWithGoogle}
               >
                 Login with Google
-              </button>
+              </button> */}
             </div>
           </form>
         </>

@@ -1,7 +1,7 @@
-@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
 
 * {
-  font-family: "Roboto", sans-serif;
+  font-family: 'Roboto', sans-serif;
 }
 
 html {
@@ -76,6 +76,26 @@ html {
         justify-content: space-between;
         box-shadow: 0.2rem 0.2rem 0.15rem 0.1rem #f3c14f;
 
+        .unpublished {
+          font-size: 2rem;
+          font-weight: bold;
+          text-align: center;
+          color: #4c4c4c;
+        }
+
+        .recipe-name {
+          font-size: 2rem;
+          font-weight: bold;
+          color: #fff;
+          text-align: center;
+        }
+
+        .recipe-field {
+          font-size: 1.25rem;
+          font-weight: bold;
+          color: #fff;
+        }
+
         .recipe-image {
           display: flex;
           justify-content: center;
@@ -89,6 +109,7 @@ html {
           .recipe-image {
             object-fit: cover;
             width: 14rem;
+            height: 14rem;
           }
         }
 
@@ -160,6 +181,12 @@ html {
         display: flex;
         justify-content: space-between;
         margin-bottom: 0.5rem;
+
+        .directions {
+          width: 12.3rem;
+          height: 8rem;
+          margin-left: 0.35rem;
+        }
       }
     }
   }
@@ -197,8 +224,12 @@ html {
 
       .ingredient-label {
         display: flex;
-        flex-direction: column;
-        width: 30%;
+        align-items: center;
+      }
+
+      .add-ingredient-button {
+        width: 10rem;
+        height: 2rem;
       }
     }
   }
@@ -431,7 +462,7 @@ $animationtime: 1.5s;
     &:before,
     &:after {
       position: absolute;
-      content: "";
+      content: '';
       top: 50%;
       left: 50%;
       transform: rotate(20deg);
