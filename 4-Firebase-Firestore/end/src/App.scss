@@ -109,7 +109,6 @@ html {
           .recipe-image {
             object-fit: cover;
             width: 14rem;
-            height: 14rem;
           }
         }
 
@@ -218,12 +217,8 @@ html {
 
       .ingredient-label {
         display: flex;
-        align-items: center;
-      }
-
-      .add-ingredient-button {
-        width: 10rem;
-        height: 2rem;
+        flex-direction: column;
+        width: 30%;
       }
     }
   }
