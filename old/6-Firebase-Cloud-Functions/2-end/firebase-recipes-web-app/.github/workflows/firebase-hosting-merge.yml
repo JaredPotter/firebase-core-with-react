@@ -21,3 +21,19 @@ jobs:
           projectId: fir-recipes-3d91c
         env:
           FIREBASE_CLI_PREVIEWS: hostingchannels
+  functions_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v2
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: 📥 Download deps
+        working-directory: functions
+        run: npm install
+      - name: 🚀 Deploy
+        run: npx firebase-tools deploy --token "$FIREBASE_TOKEN"
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
