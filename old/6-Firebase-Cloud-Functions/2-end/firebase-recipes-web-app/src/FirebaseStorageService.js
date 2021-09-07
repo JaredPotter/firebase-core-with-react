@@ -2,7 +2,7 @@ import firebase from './FirebaseConfig';
 
 const storageRef = firebase.storage().ref();
 
-const uploadFile = (file, fullFilePath, progressCallback, UrlCallback) => {
+const uploadFile = (file, fullFilePath, progressCallback) => {
   const uploadTask = storageRef.child(fullFilePath).put(file);
 
   uploadTask.on(

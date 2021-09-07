@@ -1,41 +1,11 @@
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
-require('dotenv').config();
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
 
-const FIREBASE_STORAGE_BUCKET = process.env.FIREBASE_STORAGE_BUCKET;
-
-if (!FIREBASE_STORAGE_BUCKET) {
-  console.log(
-    'environment variable not set. Please add FIREBASE_STORAGE_BUCKET to your .env file. Aborting Now.'
-  );
-
-  return;
-}
-
-const FIREBASE_SERVICE_ACCOUNT_FILENAME =
-  process.env.FIREBASE_SERVICE_ACCOUNT_FILENAME;
-
-if (!FIREBASE_SERVICE_ACCOUNT_FILENAME) {
-  console.log(
-    'environment variable not set. Please add FIREBASE_SERVICE_ACCOUNT_FILENAME to your .env file. Aborting Now.'
-  );
-
-  return;
-}
-
-const serviceAccount = require(`./${FIREBASE_SERVICE_ACCOUNT_FILENAME}`);
-
-if (!serviceAccount) {
-  console.log(
-    'firebase service account not set. Please add firebase service account. Aborting Now.'
-  );
-
-  return;
-}
+const FIREBASE_STORAGE_BUCKET = "fir-recipes-3d91c.appspot.com";
 
 const apiFirebaseOption = {
   ...functions.config().firebase,
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.applicationDefault(),
 };
 admin.initializeApp(apiFirebaseOption);
 

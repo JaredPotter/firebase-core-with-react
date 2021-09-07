@@ -7,6 +7,11 @@ const admin = firebaseConfig.admin;
 
 exports.api = functions.https.onRequest(recipesApiApp);
 
+// TODO:
+// import admin = require('firebase-admin');
+
+// const todayAsTimestamp = admin.firestore.Timestamp.now()
+
 exports.onCreateRecipe = functions.firestore
   .document('recipes/{recipeId}')
   .onCreate(async (snap, context) => {

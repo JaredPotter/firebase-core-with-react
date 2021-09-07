@@ -1,42 +1,30 @@
-import React from 'react';
+import { useState } from 'react';
 import FirebaseAuthService from '../FirebaseAuthService';
 
 function LoginForm({ existingUser }) {
-  const [username, setUsername] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [user, setUser] = React.useState(null);
-
-  React.useEffect(() => {
-    setUser(existingUser);
-  }, [existingUser]);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
   async function handleSubmit(event) {
     event.preventDefault();
 
     try {
-      const authResponse = await FirebaseAuthService.loginUser(
-        username,
-        password
-      );
+      await FirebaseAuthService.loginUser(username, password);
 
-      setUser(authResponse.user);
+      setUsername('');
+      setPassword('');
     } catch (error) {
       alert(error.message);
-      throw error;
     }
-
-    setUsername('');
-    setPassword('');
   }
 
   function handleLogout() {
     FirebaseAuthService.logoutUser();
-    setUser(null);
   }
 
   async function handleSendPasswordResetEmail() {
     if (!username) {
-      alert('Missing username/email');
+      alert('Missing username!');
       return;
     }
 
@@ -50,70 +38,63 @@ function LoginForm({ existingUser }) {
 
   async function handleLoginWithGoogle() {
     try {
-      const loginResult = await FirebaseAuthService.loginWithGoogle();
-
-      const user = loginResult.user;
-
-      setUser(user);
+      await FirebaseAuthService.loginWithGoogle();
     } catch (error) {
       alert(error.message);
-      throw error;
     }
   }
 
   return (
     <div className="login-form-container">
-      {user ? (
+      {existingUser ? (
         <div className="row">
-          <h3>Welcome, {user.email}</h3>
+          <h3>Welcome, {existingUser.email}</h3>
           <button onClick={handleLogout} className="primary-button">
             Logout
           </button>
         </div>
       ) : (
-        <>
-          <form onSubmit={handleSubmit} className="login-form">
-            <label className="input-label login-label">
-              Username (email):
-              <input
-                type="email"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="input-text"
-              />
-            </label>
-            <label className="input-label login-label">
-              Password:
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="input-text"
-              />
-            </label>
-            <div className="button-box">
-              <button type="submit" className="primary-button">
-                Login
-              </button>
-              <button
-                type="button"
-                className="primary-button"
-                onClick={handleSendPasswordResetEmail}
-              >
-                Reset Email
-              </button>
-              {/* <button
-                type="button"
-                className="primary-button"
-                onClick={handleLoginWithGoogle}
-              >
-                Login with Google
-              </button> */}
-            </div>
-          </form>
-        </>
+        <form onSubmit={handleSubmit} className="login-form">
+          <label className="input-label login-label">
+            Username (email):
+            <input
+              type="email"
+              required
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="input-text"
+            />
+          </label>
+          <label className="input-label login-label">
+            Password:
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="input-text"
+            />
+          </label>
+          <div className="button-box">
+            <button type="submit" className="primary-button">
+              Login
+            </button>
+            <button
+              type="button"
+              className="primary-button"
+              onClick={handleSendPasswordResetEmail}
+            >
+              Reset Email
+            </button>
+            {/* <button
+              type="button"
+              className="primary-button"
+              onClick={handleLoginWithGoogle}
+            >
+              Login with Google
+            </button> */}
+          </div>
+        </form>
       )}
     </div>
   );

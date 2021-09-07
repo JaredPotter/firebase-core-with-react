@@ -70,39 +70,39 @@ const sanitizeRecipePostPut = (newRecipe) => {
   return recipe;
 };
 
-const sanitizeRecipePatch = (newRecipe) => {
-  const recipe = {};
+// const sanitizeRecipePatch = (newRecipe) => {
+//   const recipe = {};
 
-  if (newRecipe.name) {
-    recipe.name = newRecipe.name;
-  }
+//   if (newRecipe.name) {
+//     recipe.name = newRecipe.name;
+//   }
 
-  if (newRecipe.category) {
-    recipe.category = newRecipe.category;
-  }
+//   if (newRecipe.category) {
+//     recipe.category = newRecipe.category;
+//   }
 
-  if (newRecipe.directions) {
-    recipe.directions = newRecipe.directions;
-  }
+//   if (newRecipe.directions) {
+//     recipe.directions = newRecipe.directions;
+//   }
 
-  if (newRecipe.publishDate) {
-    recipe.publishDate = new Date(newRecipe.publishDate * 1000);
-  }
+//   if (newRecipe.publishDate) {
+//     recipe.publishDate = new Date(newRecipe.publishDate * 1000);
+//   }
 
-  if (newRecipe.ingredients && newRecipe.ingredients.length > 0) {
-    recipe.ingredients = newRecipe.ingredients;
-  }
+//   if (newRecipe.ingredients && newRecipe.ingredients.length > 0) {
+//     recipe.ingredients = newRecipe.ingredients;
+//   }
 
-  if (newRecipe.imageUrl) {
-    recipe.imageUrl = newRecipe.imageUrl;
-  }
+//   if (newRecipe.imageUrl) {
+//     recipe.imageUrl = newRecipe.imageUrl;
+//   }
 
-  return recipe;
-};
+//   return recipe;
+// };
 
 module.exports = {
   authorizeUser,
   validateRecipePostPut,
   sanitizeRecipePostPut,
-  sanitizeRecipePatch,
+  // sanitizeRecipePatch,
 };

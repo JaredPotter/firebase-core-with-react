@@ -38,20 +38,20 @@ const createDocument = async (collection, document) => {
   }
 };
 
-const readDocument = async (collection, id) => {
-  try {
-    const response = await fetch(`${BASE_URL}/${collection}/${id}`, {
-      method: 'GET',
-    });
+// const readDocument = async (collection, id) => {
+//   try {
+//     const response = await fetch(`${BASE_URL}/${collection}/${id}`, {
+//       method: "GET",
+//     });
 
-    const document = response.json();
+//     const document = response.json();
 
-    return document;
-  } catch (error) {
-    alert(error.message);
-    throw error;
-  }
-};
+//     return document;
+//   } catch (error) {
+//     alert(error.message);
+//     throw error;
+//   }
+// };
 
 const readDocuments = async ({
   collection,
@@ -178,7 +178,7 @@ const deleteDocument = async (collection, id) => {
 
 const FirebaseFirestoreRestService = {
   createDocument,
-  readDocument,
+  // readDocument,
   readDocuments,
   updateDocument,
   deleteDocument,

@@ -1,6 +1,5 @@
-import FirebaseStorageService from '../FirebaseStorageService';
-import React from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import { useState, useEffect } from 'react';
+import ImageUploadPreview from './ImageUploadPreview';
 
 function AddEditRecipeForm({
   handleAddRecipe,
@@ -9,7 +8,7 @@ function AddEditRecipeForm({
   existingRecipe,
   handleCancelClick,
 }) {
-  React.useEffect(() => {
+  useEffect(() => {
     if (existingRecipe) {
       setName(existingRecipe.name);
       setCategory(existingRecipe.category);
@@ -17,61 +16,20 @@ function AddEditRecipeForm({
       setDirections(existingRecipe.directions);
       setIngredients(existingRecipe.ingredients);
       setImageUrl(existingRecipe.imageUrl);
-      setUploadProgress(-1);
-      fileInputRef.current.value = null;
     } else {
-      setName('');
-      setCategory('');
-      setPublishDate('');
-      setDirections('');
-      setIngredients([]);
-      setImageUrl('');
-      setUploadProgress(-1);
-      fileInputRef.current.value = null;
+      resetForm();
     }
   }, [existingRecipe]);
 
-  const [name, setName] = React.useState('');
-  const [category, setCategory] = React.useState('');
-  const [publishDate, setPublishDate] = React.useState(() => {
-    const now = new Date().toISOString().split('T')[0];
-
-    return now;
-  });
-  const [directions, setDirections] = React.useState('');
-  const [ingredients, setIngredients] = React.useState([]);
-  const [ingredientName, setIngredientName] = React.useState('');
-  const [imageUrl, setImageUrl] = React.useState('');
-  const [uploadProgress, setUploadProgress] = React.useState(-1);
-
-  const fileInputRef = React.useRef();
-
-  async function handleFileChanged(event) {
-    const files = event.target.files;
-    const file = files[0];
-    const documentId = uuidv4();
-
-    try {
-      const downloadUrl = await FirebaseStorageService.uploadFile(
-        file,
-        `recipes/${documentId}`,
-        setUploadProgress
-      );
-
-      setImageUrl(downloadUrl);
-    } catch (error) {
-      setUploadProgress(-1);
-      fileInputRef.current.value = null;
-      alert(error.message);
-      throw error;
-    }
-  }
-
-  function handleCancelImageClick() {
-    fileInputRef.current.value = null;
-    setImageUrl('');
-    setUploadProgress(-1);
-  }
+  const [name, setName] = useState('');
+  const [category, setCategory] = useState('');
+  const [publishDate, setPublishDate] = useState(
+    new Date().toISOString().split('T')[0]
+  );
+  const [directions, setDirections] = useState('');
+  const [ingredients, setIngredients] = useState([]);
+  const [ingredientName, setIngredientName] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
 
   function handleRecipeFormSubmit(event) {
     event.preventDefault();
@@ -105,14 +63,16 @@ function AddEditRecipeForm({
       handleAddRecipe(newRecipe);
     }
 
+    resetForm();
+  }
+
+  function resetForm() {
     setName('');
     setCategory('');
     setPublishDate('');
     setDirections('');
     setIngredients([]);
     setImageUrl('');
-    setUploadProgress(-1);
-    fileInputRef.current.value = null;
   }
 
   function handleAddIngredient(e) {
@@ -152,35 +112,12 @@ function AddEditRecipeForm({
       <div className="top-form-section">
         <div className="image-input-box">
           Recipe Image
-          <br />
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChanged}
-            ref={fileInputRef}
-            hidden={uploadProgress > -1 || imageUrl}
-          />
-          {!imageUrl && uploadProgress > -1 ? (
-            <div>
-              <label htmlFor="file">Upload Progress:</label>
-              <progress id="file" value={uploadProgress} max="100">
-                {uploadProgress}%
-              </progress>
-              <span>{uploadProgress}%</span>
-            </div>
-          ) : null}
-          {imageUrl ? (
-            <div className="image-preview">
-              <img src={imageUrl} alt={imageUrl} className="image" />
-              <button
-                type="button"
-                onClick={handleCancelImageClick}
-                className="secondary-button"
-              >
-                Cancel Image
-              </button>
-            </div>
-          ) : null}
+          <ImageUploadPreview
+            basePath="recipes"
+            existingImageUrl={imageUrl}
+            handleUploadFinish={(downloadUrl) => setImageUrl(downloadUrl)}
+            handleUploadCancel={() => setImageUrl('')}
+          ></ImageUploadPreview>
         </div>
         <div className="fields">
           <label className="recipe-label input-label">

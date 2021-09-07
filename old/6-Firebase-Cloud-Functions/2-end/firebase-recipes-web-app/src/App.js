@@ -1,23 +1,25 @@
 import './App.scss';
 import { useState, useEffect } from 'react';
 import FirebaseAuthService from './FirebaseAuthService';
-import FirebaseFirestoreRestService from './FirebaseFirestoreRestService';
+import FirebaseFirestoreService from './FirebaseFirestoreService';
+// import FirebaseFirestoreRestService from "./FirebaseFirestoreRestService";
 import LoginForm from './components/LoginForm';
 import AddEditRecipeForm from './components/AddEditRecipeForm';
+import FirebaseConfig from './FirebaseConfig';
 
-const SECONDS_MULTIPLIER = 1000;
+const firestore = FirebaseConfig.firestore;
 
 function App() {
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [currentRecipe, setCurrentRecipe] = useState(null);
   const [categoryFilter, setCategoryFilter] = useState('');
   const [orderBy, setOrderBy] = useState('publishDateDesc');
   const [recipesPerPage, setRecipesPerPage] = useState(3);
-  const [currentPageNumber, setCurrentPageNumber] = useState(1);
+  // const [currentPageNumber, setCurrentPageNumber] = useState(1);
   const [isLastPage, setIsLastPage] = useState(false);
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(0);
   const [recipes, setRecipes] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
@@ -27,8 +29,8 @@ function App() {
       user,
       orderBy,
       recipesPerPage,
-      null,
-      currentPageNumber
+      null
+      // currentPageNumber
     )
       .then((fetchedRecipes) => {
         setRecipes(fetchedRecipes);
@@ -40,12 +42,12 @@ function App() {
       .finally(() => {
         setIsLoading(false);
       });
-  }, [categoryFilter, user, orderBy, recipesPerPage, currentPageNumber]);
+  }, [categoryFilter, user, orderBy, recipesPerPage /*currentPageNumber*/]);
 
   FirebaseAuthService.subscribeToAuthChanges(setUser);
 
   async function fetchRecipes(
-    categoryFilter,
+    categoryFilter2,
     user,
     orderBy,
     recipesPerPage,
@@ -91,62 +93,84 @@ function App() {
     let fetchedRecipes = [];
 
     try {
-      const response = await FirebaseFirestoreRestService.readDocuments({
+      const response = await FirebaseFirestoreService.readDocuments({
         collection: 'recipes',
         queries: queries,
         orderByField: orderByField,
         orderByDirection: orderByDirection,
         perPage: recipesPerPage,
         cursorId: cursorId,
-        pageNumber: currentPageNumber,
       });
 
-      if (response && response.documents) {
-        const totalNumberOfPages = Math.ceil(
-          response.recipeCount / recipesPerPage
-        );
+      const newRecipes = response.docs.map((recipe) => {
+        const id = recipe.id;
 
-        setTotalNumberOfPages(totalNumberOfPages);
+        const data = recipe.data();
+        data.publishDate = new Date(data.publishDate.seconds * 1000);
+        return { ...data, id };
+      });
 
-        const query = {
-          collection: 'recipes',
-          queries: queries,
-          orderByField: orderByField,
-          orderByDirection: orderByDirection,
-          perPage: recipesPerPage,
-          cursorId: cursorId,
-          pageNumber: currentPageNumber + 1,
-        };
-
-        const nextPageResponse = await FirebaseFirestoreRestService.readDocuments(
-          query
-        );
-
-        if (
-          nextPageResponse &&
-          nextPageResponse.documents &&
-          nextPageResponse.documents.length === 0
-        ) {
-          setIsLastPage(true);
-        } else {
-          setIsLastPage(false);
-        }
-
-        fetchedRecipes = response.documents;
-
-        fetchedRecipes.forEach((recipe) => {
-          const unixPublishDate = recipe.publishDate;
-          recipe.publishDate = new Date(unixPublishDate * SECONDS_MULTIPLIER);
-
-          return recipe;
-        });
-
-        if (fetchedRecipes.length === 0 && currentPageNumber !== 1) {
-          setCurrentPageNumber(currentPageNumber - 1);
-        }
+      if (cursorId) {
+        fetchedRecipes = [...recipes, ...newRecipes];
       } else {
-        throw { message: 'Failed to load recipes!' };
+        fetchedRecipes = [...newRecipes];
       }
+      // const response = await FirebaseFirestoreRestService.readDocuments({
+      //   collection: "recipes",
+      //   queries: queries,
+      //   orderByField: orderByField,
+      //   orderByDirection: orderByDirection,
+      //   perPage: recipesPerPage,
+      //   cursorId: cursorId,
+      //   pageNumber: currentPageNumber,
+      // });
+
+      // if (response && response.documents) {
+      //   const totalNumberOfPages = Math.ceil(
+      //     response.recipeCount / recipesPerPage
+      //   );
+
+      //   setTotalNumberOfPages(totalNumberOfPages);
+
+      //   const query = {
+      //     collection: "recipes",
+      //     queries: queries,
+      //     orderByField: orderByField,
+      //     orderByDirection: orderByDirection,
+      //     perPage: recipesPerPage,
+      //     cursorId: cursorId,
+      //     pageNumber: currentPageNumber + 1,
+      //   };
+
+      //   const nextPageResponse = await FirebaseFirestoreRestService.readDocuments(
+      //     query
+      //   );
+
+      //   if (
+      //     nextPageResponse &&
+      //     nextPageResponse.documents &&
+      //     nextPageResponse.documents.length === 0
+      //   ) {
+      //     setIsLastPage(true);
+      //   } else {
+      //     setIsLastPage(false);
+      //   }
+
+      //   fetchedRecipes = response.documents;
+
+      //   fetchedRecipes.forEach((recipe) => {
+      //     const unixPublishDate = recipe.publishDate;
+      //     recipe.publishDate = new Date(unixPublishDate * SECONDS_MULTIPLIER);
+
+      //     return recipe;
+      //   });
+
+      //   if (fetchedRecipes.length === 0 && currentPageNumber !== 1) {
+      //     setCurrentPageNumber(currentPageNumber - 1);
+      //   }
+      // } else {
+      //   throw { message: "Failed to load recipes!" };
+      // }
     } catch (error) {
       console.error(error);
       throw error;
@@ -157,17 +181,18 @@ function App() {
 
   async function handleAddRecipe(newRecipe) {
     try {
-      newRecipe.publishDate =
-        newRecipe.publishDate.getTime() / SECONDS_MULTIPLIER;
+      // const response = await FirebaseFirestoreRestService.createDocument(
+      //   "recipes",
+      //   newRecipe
+      // );
 
-      const response = await FirebaseFirestoreRestService.createDocument(
+      const response = await FirebaseFirestoreService.createDocument(
         'recipes',
         newRecipe
       );
 
       handleFetchRecipes();
 
-      window.scrollTo(0, 0);
       alert(`successfully created a recipe with an ID = ${response.id}`);
     } catch (error) {
       alert(error.message);
@@ -178,10 +203,18 @@ function App() {
 
   async function handleUpdateRecipe(updatedRecipe) {
     try {
-      updatedRecipe.publishDate =
-        updatedRecipe.publishDate.getTime() / SECONDS_MULTIPLIER;
+      debugger;
+      // updatedRecipe.publishDate = firestore.Timestamp.fromDate(
+      //   updatedRecipe.publishDate
+      // );
 
-      await FirebaseFirestoreRestService.updateDocument(
+      // await FirebaseFirestoreRestService.updateDocument(
+      //   "recipes",
+      //   updatedRecipe.id,
+      //   updatedRecipe
+      // );
+      debugger;
+      await FirebaseFirestoreService.updateDocument(
         'recipes',
         updatedRecipe.id,
         updatedRecipe
@@ -189,7 +222,7 @@ function App() {
 
       handleFetchRecipes();
 
-      window.scrollTo(0, 0);
+      // window.scrollTo(0, 0);
       alert(`successfully updated recipe with an ID = ${updatedRecipe.id}`);
       setCurrentRecipe(null);
     } catch (error) {
@@ -201,12 +234,13 @@ function App() {
 
   async function handleDeleteRecipe(recipeId) {
     const deleteConfirmation = window.confirm(
-      'Are you sure you want to delete this recipe?'
+      'Are you sure you want to delete this recipe? OK for Yes. Cancel for No.'
     );
 
     if (deleteConfirmation) {
       try {
-        await FirebaseFirestoreRestService.deleteDocument('recipes', recipeId);
+        // await FirebaseFirestoreRestService.deleteDocument("recipes", recipeId);
+        await FirebaseFirestoreService.deleteDocument('recipes', recipeId);
 
         handleFetchRecipes();
         setCurrentRecipe(null);
@@ -223,7 +257,7 @@ function App() {
 
   function handleCancelClick() {
     setCurrentRecipe(null);
-    window.scrollTo(0, 0);
+    // window.scrollTo(0, 0);
   }
 
   function handleRecipeEditClick(recipeId) {
@@ -244,15 +278,23 @@ function App() {
     setRecipesPerPage(recipesPerPage);
   }
 
-  async function handleFetchRecipes() {
+  function handleLoadMoreRecipesClick() {
+    const lastRecipe = recipes[recipes.length - 1];
+    const cursorId = lastRecipe.id;
+
+    // fetchRecipes(cursorId);
+    handleFetchRecipes(cursorId);
+  }
+
+  async function handleFetchRecipes(cursorId = '') {
     try {
       const fetchedRecipes = await fetchRecipes(
         categoryFilter,
         user,
         orderBy,
         recipesPerPage,
-        null,
-        currentPageNumber
+        cursorId
+        // currentPageNumber
       );
 
       setRecipes(fetchedRecipes);
@@ -314,6 +356,7 @@ function App() {
               <option value="vegetables">Vegetables</option>
             </select>
           </label>
+
           <label className="input-label">
             Order By:
             <select
@@ -321,7 +364,6 @@ function App() {
               onChange={(e) => setOrderBy(e.target.value)}
               className="select"
             >
-              <option value=""></option>
               <option value="publishDateDesc">
                 Publish Date (newest - oldest)
               </option>
@@ -348,45 +390,41 @@ function App() {
               <h5 className="no-recipes">No Recipes Found</h5>
             ) : null}
             {!isLoading && recipes && recipes.length > 0 ? (
-              <>
-                <div className="recipe-list">
-                  {recipes && recipes.length > 0
-                    ? recipes.map((recipe) => {
-                        return (
-                          <div className="recipe-card" key={recipe.id}>
-                            <div>
-                              {recipe.isPublished === false ? (
-                                <div className="unpublished">UNPUBLISHED</div>
-                              ) : null}
-                              <div className="recipe-name">{recipe.name}</div>
-                              <div className="recipe-image-box">
-                                <img
-                                  src={recipe.imageUrl}
-                                  alt={recipe.name}
-                                  className="recipe-image"
-                                />
-                              </div>
-                              <div className="recipe-field">
-                                Category: {lookupCategoryLabel(recipe.category)}
-                              </div>
-                              <div className="recipe-field">
-                                Publish Date: {formatDate(recipe.publishDate)}
-                              </div>
-                            </div>
-                            {user ? (
-                              <button
-                                onClick={() => handleRecipeEditClick(recipe.id)}
-                                className="primary-button edit-button"
-                              >
-                                EDIT
-                              </button>
-                            ) : null}
+              <div className="recipe-list">
+                {recipes && recipes.length > 0
+                  ? recipes.map((recipe) => {
+                      return (
+                        <div className="recipe-card" key={recipe.id}>
+                          {recipe.isPublished === false ? (
+                            <div className="unpublished">UNPUBLISHED</div>
+                          ) : null}
+                          <div className="recipe-name">{recipe.name}</div>
+                          <div className="recipe-image-box">
+                            <img
+                              src={recipe.imageUrl}
+                              alt={recipe.name}
+                              className="recipe-image"
+                            />
                           </div>
-                        );
-                      })
-                    : null}
-                </div>
-              </>
+                          <div className="recipe-field">
+                            Category: {lookupCategoryLabel(recipe.category)}
+                          </div>
+                          <div className="recipe-field">
+                            Publish Date: {formatDate(recipe.publishDate)}
+                          </div>
+                          {user ? (
+                            <button
+                              onClick={() => handleRecipeEditClick(recipe.id)}
+                              className="primary-button edit-button"
+                            >
+                              EDIT
+                            </button>
+                          ) : null}
+                        </div>
+                      );
+                    })
+                  : null}
+              </div>
             ) : null}
           </div>
           {isLoading || (recipes && recipes.length > 0) ? (
@@ -403,12 +441,18 @@ function App() {
                 </select>
               </label>
               <div className="pagination">
-                <div className="row">
+                <button
+                  className="primary-button"
+                  onClick={handleLoadMoreRecipesClick}
+                >
+                  LOAD MORE RECIPES
+                </button>
+                {/* <div className="row">
                   <button
                     className={
                       currentPageNumber === 1
-                        ? 'primary-button hidden'
-                        : 'primary-button'
+                        ? "primary-button hidden"
+                        : "primary-button"
                     }
                     onClick={() => setCurrentPageNumber(currentPageNumber - 1)}
                   >
@@ -417,7 +461,7 @@ function App() {
                   <div>Page {currentPageNumber}</div>
                   <button
                     className={
-                      isLastPage ? 'primary-button hidden' : 'primary-button'
+                      isLastPage ? "primary-button hidden" : "primary-button"
                     }
                     onClick={() => setCurrentPageNumber(currentPageNumber + 1)}
                   >
@@ -435,8 +479,8 @@ function App() {
                               onClick={() => setCurrentPageNumber(index + 1)}
                               className={
                                 currentPageNumber === index + 1
-                                  ? 'selected-page primary-button page-button'
-                                  : 'primary-button page-button'
+                                  ? "selected-page primary-button page-button"
+                                  : "primary-button page-button"
                               }
                             >
                               {index + 1}
@@ -444,7 +488,7 @@ function App() {
                           );
                         })
                     : null}
-                </div>
+                </div> */}
               </div>
             </>
           ) : null}

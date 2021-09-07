@@ -80,7 +80,7 @@ app.get('/recipes', async (request, response) => {
     : 'asc';
   const pageNumber = queryObject['pageNumber'] ? queryObject['pageNumber'] : '';
   const perPage = queryObject['perPage'] ? queryObject['perPage'] : '';
-  const cursorId = queryObject['cursorId'] ? queryObject['cursorId'] : '';
+  // const cursorId = queryObject['cursorId'] ? queryObject['cursorId'] : '';
 
   let isAuth = false;
   let collectionRef = firestore.collection(FIRESTORE_RECIPE_COLLECTION);
@@ -109,18 +109,19 @@ app.get('/recipes', async (request, response) => {
     const pageNumberMultiplier = pageNumber - 1;
     const offset = pageNumberMultiplier * perPage;
     collectionRef = collectionRef.offset(offset);
-  } else if (cursorId) {
-    try {
-      const documentSnapshot = await firestore
-        .collection(FIRESTORE_RECIPE_COLLECTION)
-        .doc(cursorId)
-        .get();
-      collectionRef = collectionRef.startAfter(documentSnapshot);
-    } catch (error) {
-      response.status(400).send(error.message);
-      return;
-    }
   }
+  // else if (cursorId) {
+  //   try {
+  //     const documentSnapshot = await firestore
+  //       .collection(FIRESTORE_RECIPE_COLLECTION)
+  //       .doc(cursorId)
+  //       .get();
+  //     collectionRef = collectionRef.startAfter(documentSnapshot);
+  //   } catch (error) {
+  //     response.status(400).send(error.message);
+  //     return;
+  //   }
+  // }
 
   let recipeCount = 0;
   let countDocRef;
@@ -186,36 +187,36 @@ app.get('/recipes/:id', async (request, response) => {
   }
 });
 
-app.patch('/recipes/:id', async (request, response) => {
-  const authorizationHeader = request.headers['authorization'];
+// app.patch("/recipes/:id", async (request, response) => {
+//   const authorizationHeader = request.headers["authorization"];
 
-  if (!authorizationHeader) {
-    response.status(401).send('Missing Authorization header');
-    return;
-  }
+//   if (!authorizationHeader) {
+//     response.status(401).send("Missing Authorization header");
+//     return;
+//   }
 
-  try {
-    await utilities.authorizeUser(authorizationHeader, firebaseAuth);
-  } catch (error) {
-    response.status(401).send(error.message);
-    return;
-  }
+//   try {
+//     await utilities.authorizeUser(authorizationHeader, firebaseAuth);
+//   } catch (error) {
+//     response.status(401).send(error.message);
+//     return;
+//   }
 
-  const id = request.params.id;
-  const newRecipe = request.body;
-  const recipe = utilities.sanitizeRecipePatch(newRecipe);
+//   const id = request.params.id;
+//   const newRecipe = request.body;
+//   const recipe = utilities.sanitizeRecipePatch(newRecipe);
 
-  try {
-    await firestore
-      .collection(FIRESTORE_RECIPE_COLLECTION)
-      .doc(id)
-      .set(recipe, { merge: true });
+//   try {
+//     await firestore
+//       .collection(FIRESTORE_RECIPE_COLLECTION)
+//       .doc(id)
+//       .set(recipe, { merge: true });
 
-    response.status(200).send({ id });
-  } catch (error) {
-    response.status(400).send(error.message);
-  }
-});
+//     response.status(200).send({ id });
+//   } catch (error) {
+//     response.status(400).send(error.message);
+//   }
+// });
 
 app.put('/recipes/:id', async (request, response) => {
   const authorizationHeader = request.headers['authorization'];
