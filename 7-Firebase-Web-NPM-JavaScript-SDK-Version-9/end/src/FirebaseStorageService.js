@@ -1,12 +1,20 @@
-import firebase from "./FirebaseConfig";
+import firebase from './FirebaseConfig';
 
-const storageRef = firebase.storage().ref();
+import {
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+  deleteObject,
+} from 'firebase/storage';
+
+const storage = firebase.storage;
 
 const uploadFile = (file, fullFilePath, progressCallback) => {
-  const uploadTask = storageRef.child(fullFilePath).put(file);
+  const uploadRef = ref(storage, fullFilePath);
+  const uploadTask = uploadBytesResumable(uploadRef, file);
 
   uploadTask.on(
-    "state_changed",
+    'state_changed',
     (snapshot) => {
       const progress = Math.round(
         (snapshot.bytesTransferred / snapshot.totalBytes) * 100
@@ -20,7 +28,7 @@ const uploadFile = (file, fullFilePath, progressCallback) => {
   );
 
   return uploadTask.then(async () => {
-    const downloadUrl = await uploadTask.snapshot.ref.getDownloadURL();
+    const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
 
     return downloadUrl;
   });
@@ -28,11 +36,13 @@ const uploadFile = (file, fullFilePath, progressCallback) => {
 
 const deleteFile = (fileDownloadUrl) => {
   const decodedUrl = decodeURIComponent(fileDownloadUrl);
-  const startIndex = decodedUrl.indexOf("/o/") + 3;
-  const endIndex = decodedUrl.indexOf("?");
+  const startIndex = decodedUrl.indexOf('/o/') + 3;
+  const endIndex = decodedUrl.indexOf('?');
   const filePath = decodedUrl.substring(startIndex, endIndex);
 
-  return storageRef.child(filePath).delete();
+  const fileRef = ref(storage, filePath);
+
+  return deleteObject(fileRef);
 };
 
 const FirebaseStorageService = {

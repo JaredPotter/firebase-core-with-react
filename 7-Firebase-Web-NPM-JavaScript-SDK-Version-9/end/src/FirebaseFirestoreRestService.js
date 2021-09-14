@@ -1,6 +1,6 @@
-import firebase from "./FirebaseConfig";
+import firebase from './FirebaseConfig';
 
-const auth = firebase.auth();
+const auth = firebase.auth;
 
 const BASE_URL = process.env.REACT_APP_CLOUD_FIRESTORE_FUNCTION_API_URL;
 
@@ -16,10 +16,10 @@ const createDocument = async (collection, document) => {
 
   try {
     const response = await fetch(`${BASE_URL}/${collection}`, {
-      method: "POST",
+      method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(document),
     });
@@ -54,19 +54,19 @@ const readDocuments = async ({
     }
 
     if (orderByField) {
-      url.searchParams.append("orderByField", orderByField);
+      url.searchParams.append('orderByField', orderByField);
     }
 
     if (orderByDirection) {
-      url.searchParams.append("orderByDirection", orderByDirection);
+      url.searchParams.append('orderByDirection', orderByDirection);
     }
 
     if (perPage) {
-      url.searchParams.append("perPage", perPage);
+      url.searchParams.append('perPage', perPage);
     }
 
     if (pageNumber) {
-      url.searchParams.append("pageNumber", pageNumber);
+      url.searchParams.append('pageNumber', pageNumber);
     }
 
     let token;
@@ -78,7 +78,7 @@ const readDocuments = async ({
     }
 
     const response = await fetch(url, {
-      method: "GET",
+      method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -110,10 +110,10 @@ const updateDocument = async (collection, id, document) => {
 
   try {
     const response = await fetch(`${BASE_URL}/${collection}/${id}`, {
-      method: "PUT",
+      method: 'PUT',
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(document),
     });
@@ -144,10 +144,10 @@ const deleteDocument = async (collection, id) => {
 
   try {
     const response = await fetch(`${BASE_URL}/${collection}/${id}`, {
-      method: "DELETE",
+      method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     });
 
