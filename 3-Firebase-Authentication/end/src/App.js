@@ -1,8 +1,8 @@
-import { useState } from "react";
-import FirebaseAuthService from "./FirebaseAuthService";
-import LoginForm from "./components/LoginForm";
+import { useState } from 'react';
+import FirebaseAuthService from './FirebaseAuthService';
+import LoginForm from './components/LoginForm';
 
-import "./App.scss";
+import './App.css';
 
 function App() {
   const [user, setUser] = useState(null);
