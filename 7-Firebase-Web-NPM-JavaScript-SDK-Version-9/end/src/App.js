@@ -3,7 +3,7 @@ import FirebaseAuthService from './FirebaseAuthService';
 import LoginForm from './components/LoginForm';
 import AddEditRecipeForm from './components/AddEditRecipeForm';
 
-import './App.scss';
+import './App.css';
 import FirebaseFirestoreService from './FirebaseFirestoreService';
 // import FirebaseFirestoreRestService from "./FirebaseFirestoreRestService";
 
