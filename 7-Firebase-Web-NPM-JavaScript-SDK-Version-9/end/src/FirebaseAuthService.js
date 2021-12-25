@@ -34,12 +34,14 @@ const subscribeToAuthChanges = (handleAuthChange) => {
   });
 };
 
+// sendPasswordResetEmail()
+
 const FirebaseAuthService = {
   registerUser,
   loginUser,
   logoutUser,
   sendPasswordResetEmail: (email) => {
-    sendPasswordResetEmail(auth, email);
+    return sendPasswordResetEmail(auth, email);
   },
   loginWithGoogle,
   subscribeToAuthChanges,
